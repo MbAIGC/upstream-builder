@@ -1105,6 +1105,10 @@ META_TO_ENV = {
     "release_tag": "UB_RELEASE_TAG", "docker_strategy": "UB_DOCKER_STRATEGY",
     "entry": "UB_ENTRY", "language": "UB_LANGUAGE", "method": "UB_METHOD",
     "docker_targets_all": "UB_DOCKER_TARGETS_ALL",
+    "repo": "UB_REPO",
+    "release_binary": "UB_RELEASE_BINARY",
+    "release_tag_strategy": "UB_RELEASE_TAG_STRATEGY",
+    "release_assets": "UB_RELEASE_ASSETS",
 }
 
 

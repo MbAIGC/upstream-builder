@@ -25,8 +25,19 @@ if [ -z "$pkgs" ]; then
 fi
 
 need gh
+
+# 元数据里可能缺字段（例如纯二进制项目或早期产物），统一兜底：
+# 之前 UB_REPO 没进 meta，set -u 直接让发布步骤崩掉；
+# UB_RELEASE_TAG_STRATEGY 没进 meta，则会把滚动策略静默降级成 sha。
 strategy="${UB_RELEASE_TAG_STRATEGY:-sha}"
-tag="$UB_RELEASE_TAG"
+tag="${UB_RELEASE_TAG:-}"
+[ -n "$tag" ] || die "构建元数据里没有 release_tag，无法确定 Release 标签"
+repo="${UB_REPO:-unknown}"
+version="${UB_VERSION:-unknown}"
+sha="${UB_SHA:-unknown}"
+language="${UB_LANGUAGE:-unknown}"
+method="${UB_METHOD:-unknown}"
+name="${UB_NAME:-$tag}"
 log "Release tag=$tag  策略=$strategy"
 
 src_json="$(find "$UB_ARTIFACTS" -name '*.source.json' | sort | head -1)"
@@ -39,12 +50,12 @@ cat > "$notes" <<EOF
 
 | 项目 | 值 |
 |---|---|
-| 上游仓库 | $UB_REPO |
-| 上游版本 | $UB_VERSION |
-| 上游 Commit | \`$UB_SHA\` |
+| 上游仓库 | $repo |
+| 上游版本 | $version |
+| 上游 Commit | \`$sha\` |
 | 源码树摘要 | \`$tree_sha\` |
 | 构建时间 | $(date -u +%Y-%m-%dT%H:%M:%SZ) |
-| 构建方式 | ${UB_LANGUAGE}/${UB_METHOD} |
+| 构建方式 | ${language}/${method} |
 
 校验：每个包内附 \`SHA256SUMS\`，同名 \`.sha256\` 为压缩包本身的摘要。
 许可证与版权声明随包分发，未做任何修改。
@@ -79,9 +90,9 @@ if gh release view "$tag" >/dev/null 2>&1; then
     gh release upload "$tag" "${missing[@]}"
   fi
 else
-  declare -a flags=(--title "$UB_NAME $UB_VERSION" --notes-file "$notes")
-  [ "$strategy" = "rolling-prerelease" ] && flags+=(--prerelease)
-  [ "$strategy" = "upstream-tag" ] || flags+=(--prerelease)
+  declare -a flags=(--title "$name $version" --notes-file "$notes")
+  # 只有 upstream-tag（上游有正式版本依据）才发正式 Release，其余一律预发布
+  if [ "$strategy" != "upstream-tag" ]; then flags+=(--prerelease); fi
   gh release create "$tag" "${assets[@]}" "${flags[@]}"
 fi
 rm -f "$notes"

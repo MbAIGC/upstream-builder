@@ -132,7 +132,10 @@ python3 - "$UB_OUT/image-meta.json" <<'PY'
 import json, os, sys
 keys = ["UB_NAME","UB_IMAGE","UB_PUSH_TAG","UB_PROMOTE_TAGS","UB_DOCKER_TARGETS","UB_DOCKER_TARGETS_ALL",
         "UB_SHA","UB_VERSION","UB_SHORT_SHA","UB_RELEASE_TAG","UB_DOCKER_STRATEGY",
-        "UB_ENTRY","UB_LANGUAGE","UB_METHOD"]
+        "UB_ENTRY","UB_LANGUAGE","UB_METHOD",
+        # 发布 Release 也要用：之前漏了 UB_REPO 导致 set -u 直接崩，
+        # 漏了 RELEASE_TAG_STRATEGY 导致策略被静默降级成 sha
+        "UB_REPO","UB_RELEASE_BINARY","UB_RELEASE_TAG_STRATEGY","UB_RELEASE_ASSETS"]
 meta = {k.replace("UB_","",1).lower(): os.environ.get(k,"") for k in keys}
 json.dump(meta, open(sys.argv[1],"w"), indent=2, ensure_ascii=False)
 print("meta:", json.dumps(meta, ensure_ascii=False))

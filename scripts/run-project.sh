@@ -48,6 +48,9 @@ fi
 # 把源码快照的 provenance 带出来（Release 说明里要写上游 SHA / 源码树摘要）
 if [ -f "$UB_WORK/src/$UB_NAME.source.json" ]; then
   cp "$UB_WORK/src/$UB_NAME.source.json" "$UB_OUT/"
+elif [ -f "$UB_SRC/UPSTREAM.json" ]; then
+  # 落库布局：没有下载 sidecar，provenance 就在快照里
+  cp "$UB_SRC/UPSTREAM.json" "$UB_OUT/$UB_NAME.source.json"
 fi
 
 python3 - "$UB_OUT/result.json" "$status" "$error" "$started" "$UB_OUT" <<'PY'
@@ -71,6 +74,9 @@ result = {
     "docker_targets": os.environ.get("UB_DOCKER_TARGETS", "").split(),
     "image": os.environ.get("UB_IMAGE", ""),
     "release_tag": os.environ.get("UB_RELEASE_TAG", ""),
+    "release_binary": os.environ.get("UB_RELEASE_BINARY", ""),
+    "release_tag_strategy": os.environ.get("UB_RELEASE_TAG_STRATEGY", ""),
+    "release_assets": os.environ.get("UB_RELEASE_ASSETS", "").split(),
     "status": status,
     "error": error or None,
     "started_at": started,
