@@ -21,11 +21,12 @@
       "resolved_version": "feb3fa3"
     },
     "cline2api": {
-      "build_status": "failure",
-      "last_build_attempt_at": "2026-10-02T15:10:58Z",
+      "build_status": "success",
+      "last_build_attempt_at": "2026-10-02T15:25:21Z",
       "last_build_attempt_sha": "5b60a67fc570e26da6f50b5c055c4870fe450f1c",
       "last_decision": "force",
-      "last_error": "失败步骤: build-docker",
+      "last_successful_build_at": "2026-10-02T15:25:21Z",
+      "last_successful_build_sha": "5b60a67fc570e26da6f50b5c055c4870fe450f1c",
       "last_synced_at": "2026-10-02T15:18:47Z",
       "last_synced_sha": "5b60a67fc570e26da6f50b5c055c4870fe450f1c",
       "platforms": [
@@ -40,6 +41,6 @@
       "resolved_version": "v1.6.4"
     }
   },
-  "updated_at": "2026-10-02T15:18:47Z",
+  "updated_at": "2026-10-02T15:25:21Z",
   "version": 1
 }
