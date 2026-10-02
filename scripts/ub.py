@@ -24,6 +24,7 @@ import re
 import shutil
 import sys
 import tarfile
+import tempfile
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
@@ -110,7 +111,7 @@ def _check_keys(where, obj, allowed, required=()):
 
 
 DEFAULTS_KEYS = {"targets", "continue_on_error", "runners"}
-SYNC_KEYS = {"layout", "state_file", "workdir"}
+SYNC_KEYS = {"layout", "state_file", "workdir", "vendor_dir"}
 REF_KEYS = {"type", "value"}
 BUILD_KEYS = {
     "enabled", "language", "method", "go_version", "python_version", "node_version",
@@ -152,9 +153,11 @@ def validate_config(cfg) -> list:
 
     sync = cfg.get("sync", {})
     p += _check_keys("sync", sync, SYNC_KEYS)
-    if sync.get("layout", "none") != "none":
-        p.append("sync.layout: 本骨架只实现 'none'（源码不落库）；"
-                 "如需 vendor 布局请另行实现并在文档中说明")
+    layout = sync.get("layout", "vendor")
+    if layout not in {"none", "vendor"}:
+        p.append(f"sync.layout: 只支持 'vendor'（源码落库到 vendor/<name>/）或 'none'，收到 {layout!r}")
+    if layout == "vendor" and not is_safe_relpath(sync.get("vendor_dir", "vendor")):
+        p.append(f"sync.vendor_dir: 非法相对路径 {sync.get('vendor_dir')!r}")
 
     projects = cfg.get("projects")
     if not isinstance(projects, list) or not projects:
@@ -546,6 +549,147 @@ def fetch_snapshot(proj: dict, sha: str, dest: Path, token: str | None) -> dict:
 # 命令实现
 # --------------------------------------------------------------------------
 
+def vendor_one(proj, sha, version, dest: Path, token, dry_run=False, strip=(".github",)):
+    """把某个 SHA 的源码快照落到 dest（vendor/<name>/），并在里面写 UPSTREAM.json。
+
+    为什么用命名空间目录而不是仓库根目录：上游自带的 .gitignore 作用域是它所在的
+    目录及其子目录。两个上游都放在根目录时只能有一份 .gitignore，后同步的会覆盖
+    先同步的，规则还会全局生效（实测：cline2api 的 *_test.go 规则会让另一个项目的
+    测试文件静默消失）。放进 vendor/<name>/ 后每个上游的规则只作用于自己的子树。
+    """
+    up = dest / "UPSTREAM.json"
+    old = {}
+    if up.exists():
+        try:
+            old = json.loads(up.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            old = {}
+    if old.get("sha") == sha and dest.is_dir():
+        return {"project": proj["name"], "dest": str(dest), "sha": sha, "changed": False,
+                "reason": "sha-unchanged", "tree_sha256": old.get("tree_sha256"),
+                "file_count": old.get("file_count"), "version": old.get("version")}
+
+    work = Path(tempfile.mkdtemp(prefix="ub-vendor-"))
+    try:
+        snap = work / "snap"
+        info = fetch_snapshot(proj, sha, snap, token)
+
+        stripped = []
+        for rel in strip:
+            target = snap / rel
+            if target.is_dir():
+                shutil.rmtree(target)
+                stripped.append(rel)
+            elif target.exists():
+                target.unlink()
+                stripped.append(rel)
+
+        info.update({
+            "project": proj["name"],
+            "version": version,
+            "ref": proj.get("ref"),
+            "stripped": stripped,
+            "note": "上游源码归档的快照（等于上游 tar.gz 的内容，不是上游 git 跟踪文件的子集）。"
+                    "上游 .github/ 已剔除，避免其 workflow 在本仓库被执行。",
+        })
+        if dry_run:
+            return {"project": proj["name"], "dest": str(dest), "sha": sha, "changed": True,
+                    "reason": "would-update", "tree_sha256": info.get("tree_sha256"),
+                    "file_count": info.get("file_count"), "version": version}
+
+        (snap / "UPSTREAM.json").write_text(
+            json.dumps(info, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
+
+        # 原子替换：先备份旧快照，移动成功后才删；失败则回滚，保证不会只剩半个目录
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        backup = None
+        if dest.exists():
+            backup = dest.with_name(dest.name + ".ub-old")
+            if backup.exists():
+                shutil.rmtree(backup)
+            shutil.move(str(dest), str(backup))
+        try:
+            shutil.move(str(snap), str(dest))
+        except Exception:
+            if backup and backup.exists():
+                shutil.move(str(backup), str(dest))
+            raise
+        if backup and backup.exists():
+            shutil.rmtree(backup)
+        return {"project": proj["name"], "dest": str(dest), "sha": sha, "changed": True,
+                "reason": "updated", "tree_sha256": info.get("tree_sha256"),
+                "file_count": info.get("file_count"), "version": version,
+                "stripped": stripped}
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+
+
+def _vendor_dir(cfg) -> Path:
+    return Path(cfg.get("sync", {}).get("vendor_dir", "vendor"))
+
+
+def _pin_sha(pins, name):
+    v = pins.get(name)
+    if isinstance(v, dict):
+        return v.get("sha"), v.get("version")
+    return v, None
+
+
+def _emit_vendor_summary(results, github_output):
+    changed = [r for r in results if r["changed"]]
+    payload = {"changed": [r["project"] for r in changed], "results": results}
+    print(json.dumps(payload, indent=2, ensure_ascii=False))
+    if github_output:
+        out = os.environ.get("GITHUB_OUTPUT")
+        if out:
+            with open(out, "a", encoding="utf-8") as f:
+                f.write("changed=" + ",".join(r["project"] for r in changed) + "\n")
+                f.write(f"any_changed={'true' if changed else 'false'}\n")
+    return 0
+
+
+def cmd_vendor(args):
+    cfg = load_config(args.config)
+    proj = get_project(cfg, args.project)
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    dest = Path(args.dest) if args.dest else _vendor_dir(cfg) / proj["name"]
+    sha = args.sha
+    if not sha:
+        st = load_state(state_path(cfg, args.state))
+        sha = st["projects"].get(proj["name"], {}).get("resolved_sha")
+    if not sha:
+        die(f"{proj['name']}: 没有目标 SHA，请用 --sha 指定或先跑 plan")
+    version = args.version or (sha[:7])
+    info = vendor_one(proj, sha, version, dest, token, dry_run=args.dry_run)
+    print(json.dumps(info, indent=2, ensure_ascii=False))
+    return 0
+
+
+def cmd_vendor_all(args):
+    """把 pins 里所有项目的快照同步到 vendor/<name>/（sync.yml 用）。"""
+    cfg = load_config(args.config)
+    pins = json.loads(args.pins) if args.pins else {}
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    st = load_state(state_path(cfg, args.state))
+    results = []
+    for proj in select_projects(cfg, args.project):
+        name = proj["name"]
+        sha, version = _pin_sha(pins, name)
+        if not sha:
+            rec = st["projects"].get(name, {})
+            sha = rec.get("resolved_sha")
+            version = version or rec.get("resolved_version")
+        if not sha:
+            print(f"skip {name}: 没有 SHA", file=sys.stderr)
+            continue
+        dest = _vendor_dir(cfg) / name
+        info = vendor_one(proj, sha, version or sha[:7], dest, token, dry_run=args.dry_run)
+        flag = "SYNC " if info["changed"] else "keep "
+        print(f"{flag}{name:<26} {sha[:12]}  {info['reason']}", file=sys.stderr)
+        results.append(info)
+    return _emit_vendor_summary(results, args.github_output)
+
+
 def cmd_validate(args):
     cfg = load_config(args.config)
     print(f"OK: {args.config} 校验通过，{len(cfg['projects'])} 个项目："
@@ -742,7 +886,9 @@ def cmd_env(args):
     docker = proj.get("docker", {})
     release = proj.get("release", {})
     smoke = docker.get("smoke", {})
-    image = (docker.get("image") or "").replace("{owner}", owner)
+    # Docker 仓库名必须全小写，而 GitHub owner 可能是 MbAIGC 这种大小写混合，
+    # 否则 buildx 直接报 "repository name must be lowercase"。
+    image = (docker.get("image") or "").replace("{owner}", owner).lower()
 
     bt = _project_targets(proj, defaults, "build")
     dt = _project_targets(proj, defaults, "docker")
@@ -754,6 +900,8 @@ def cmd_env(args):
 
     kv = {
         "UB_NAME": proj["name"],
+        "UB_SYNC_LAYOUT": (cfg.get("sync") or {}).get("layout", "vendor"),
+        "UB_VENDOR_DIR": (cfg.get("sync") or {}).get("vendor_dir", "vendor"),
         "UB_REPO": proj["repo"],
         "UB_SHA": sha,
         "UB_SHORT_SHA": sha[:7],
@@ -988,6 +1136,10 @@ def cmd_lockhash(args):
     cfg = load_config(args.config)
     proj = get_project(cfg, args.project)
     src = Path(args.src)
+    # 必须校验：--src 为空时 Path("") 会退化成当前目录，于是"哈希整个仓库"也算成功，
+    # 缓存键就完全错了（而且不报错）。宁可直接失败。
+    if not str(args.src).strip() or not src.is_dir():
+        die(f"lockhash: --src 必须是一个存在的目录，收到 {args.src!r}")
     lang = (proj.get("build") or {}).get("language", "none")
     patterns = LOCKFILE_PATTERNS.get(lang, [])
     h = hashlib.sha256()
@@ -1007,6 +1159,9 @@ def cmd_lockhash(args):
         h.update(str(build.get(k, "")).encode())
     digest = h.hexdigest()[:16]
     print(digest)
+    if not matched:
+        print(f"WARN: {proj['name']} ({lang}) 在 {src} 下没有匹配到任何依赖锁文件，"
+              f"缓存键将只反映工具链版本", file=sys.stderr)
     print(f"matched={','.join(matched) or '<none>'} hash={digest}", file=sys.stderr)
     return 0
 
@@ -1055,6 +1210,23 @@ def build_parser():
     s.add_argument("--owner")
     s.add_argument("--format", choices=["shell", "json", "github-env"], default="shell")
     s.set_defaults(func=cmd_env)
+
+    s = cmd_parser("vendor", help="把某个 SHA 的源码快照落到 vendor/<name>/（落库布局）")
+    s.add_argument("--project", required=True)
+    s.add_argument("--sha")
+    s.add_argument("--version")
+    s.add_argument("--dest")
+    s.add_argument("--state")
+    s.add_argument("--dry-run", action="store_true")
+    s.set_defaults(func=cmd_vendor)
+
+    s = cmd_parser("vendor-all", help="按 pins 同步所有项目的快照到 vendor/<name>/")
+    s.add_argument("--project", default="all")
+    s.add_argument("--pins")
+    s.add_argument("--state")
+    s.add_argument("--dry-run", action="store_true")
+    s.add_argument("--github-output", action="store_true")
+    s.set_defaults(func=cmd_vendor_all)
 
     s = cmd_parser("fetch", help="按 SHA 下载源码快照到临时目录（不落库）")
     s.add_argument("--project", required=True)

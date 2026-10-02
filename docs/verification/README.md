@@ -8,7 +8,7 @@
 |---|---|
 | `build_cline2api.log` | `luawei1/cline2api` v1.6.4 用**上游 Dockerfile 原样**构建（成功，121s，29.6MB，`/health`=200） |
 | `build_cps.log` | `Hxjcc/cline-pass-switcher-go` main 构建（成功，183s，29.3MB，含 node/vite 阶段） |
-| `tree_*.json` | 三个仓库的完整文件树（含 `wefewe/cline2api-go` —— 它本身就是本方案的实践先例） |
+| `tree_*.json` | 两个被测上游的完整文件树 |
 | `poc_go.sh` | 模式 A 验证：入口包路径、`go test`、交叉编译 |
 | `poc_docker.sh` | 模式 B 验证：上游 Dockerfile 原样构建 |
 | `e2e-local.sh` | 骨架脚本的端到端验证（取源码 → 测试 → 编译 → smoke → OCI archive → 打包） |

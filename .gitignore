@@ -10,3 +10,10 @@ _recon/
 .DS_Store
 .idea/
 .vscode/
+
+# 本地验证脚本的临时目录（vendor/ 不在此列：它由 GitHub 端的 sync 提交）
+_e2e/
+_dcfg/
+_scratch/
+_ghenv.txt
+_state.json

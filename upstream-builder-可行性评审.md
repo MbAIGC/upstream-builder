@@ -2,7 +2,7 @@
 
 **项目名：** upstream-builder（原文档标题里的 "go-upstream-builder" 已按此更名）
 **评审对象：** `go-upstream-builder-开发落地计划.md`（1230 行）
-**被测上游：** `Hxjcc/cline-pass-switcher-go`、`luawei1/cline2api`（计划书里写的 `wefewe/cline2api-go` 也一并看了）
+**被测上游：** `Hxjcc/cline-pass-switcher-go`、`luawei1/cline2api`
 **运行环境：** GitHub Actions（本评审不依赖本地编译，下文所有实测只用于验证「配置是否写对」）
 **结论日期：** 2026-10-02
 
@@ -114,17 +114,22 @@ git add -A 后 tracked *_test.go：81 个（全部提交）
 磁盘上 cps *_test.go：67      → tracked：67  （不受 cline2api 影响）
 ```
 
-嵌套的 `.gitignore` 只作用于自己的子目录，两个项目各按自己的策略处理，**零冲突、结果确定**。（`wefewe/cline2api-go` 用的 `upstream/` 目录就是同一个思路，它是实践中已经跑通的写法。）
+嵌套的 `.gitignore` 只作用于自己的子目录，两个项目各按自己的策略处理，**零冲突、结果确定**。
+骨架采用的就是这个布局（`vendor/<name>/`），并在提交时用 `git add -f`，让快照严格等于上游 tar.gz 的内容。
 
 **三种选择：**
 
 | 方案 | 优点 | 代价 |
 |---|---|---|
-| **A. `vendor/<name>/` 命名空间**（推荐） | 修掉全部冲突；保留快照可审计 | 推翻计划书 §一.1/§一.2 的「根目录」要求 |
+| **A. `vendor/<name>/` 命名空间**（本项目采用） | 修掉全部冲突；保留快照可审计 | 推翻计划书 §一.1/§一.2 的「根目录」要求 |
 | **B. 不落库**：按 SHA 现场下载 → 同一次 workflow 内构建 → state 只记 SHA | 彻底消灭 gitignore 冲突、路径穿越、仓库膨胀；provenance 更强（`(repo, sha)` 可直接复现） | 仓库里看不到源码；需要一个 state 文件记录已构建 SHA |
 | **C. 坚持根目录** | 不改文档 | 必须同步时剔除上游 `.gitignore`/`.gitattributes`/`.github`，由平台维护唯一根 `.gitignore`，并在报告里显式记录「构建输入已被改写」 |
 
-> 我的建议是 **B 为主、A 为备**：B 直接把「同步」和「提交」解耦，§4.3 那一整节路径保护规则几乎全部不再需要；只有当你需要本地打补丁时才用 A。
+> 本项目按「源码要落库」的要求采用 **A（`vendor/<name>/`）**，并额外做了三件事让 A 也安全：
+> 提交用 `git add -f`（快照等于 tar.gz 内容，不受上游 `.gitignore` 影响）、
+> 剔除上游 `.github/`（避免其 workflow 在本仓库被执行，并在 `UPSTREAM.json` 里记录 `stripped`）、
+> 以及把上游 ref 与 `tree_sha256` 写进 `UPSTREAM.json`（构建输入的任何改写都可见）。
+> **B（`layout: "none"`）仍然保留为一个配置项**，两种布局下构建脚本完全一致。
 
 ### 3.2 【中高】「构建 Job 不持有发布凭据」与方案自身冲突
 
@@ -147,7 +152,7 @@ git add -A 后 tracked *_test.go：81 个（全部提交）
 
 ### 3.3 【中】GitHub Actions 层面的具体坑（计划书没写，但会直接卡住）
 
-我对照了 `wefewe/cline2api-go` 已经在生产跑的 workflow，以下几条是真实踩过的：
+以下几条都会直接卡住流程，社区与 Actions 文档都已确认：
 
 | 问题 | 后果 | 修法 |
 |---|---|---|
@@ -155,7 +160,7 @@ git add -A 后 tracked *_test.go：81 个（全部提交）
 | **buildx 默认产出 provenance attestation** | GHCR 上出现 `unknown/unknown` 架构条目，下游 digest 漂移 | `provenance: false`（+ `sbom: false`）。社区已确认这是标准修法 |
 | **GHCR 新 package 默认 private** | 计划书 §7.5「应明确设置或检查其可见性」但**不能可靠自动化**：用户级 package 用 PAT 改可见性可以，组织级 API 有限制 | 写成「一次性人工步骤 + 在报告里记录期望可见性」 |
 | **`actions/cache` / `type=gha` 缓存 10GB 上限 + 会被驱逐**；gha cache scope 绑定分支，PR 里读不到主分支缓存 | 缓存不命中时构建时间翻倍 | 缓存键必须含 lockfile 哈希（`go.sum` / `package-lock.json` / Python 的 `requirements.txt` 或 `uv.lock`） |
-| **schedule 在整点严重排队** | 定时任务延迟数十分钟 | 避开整点（`wefewe` 用 `cron: '37 4 * * *'`） |
+| **schedule 在整点严重排队** | 定时任务延迟数十分钟 | 避开整点（骨架用 `17 3 * * *`） |
 | **`concurrency` 用错会杀掉正在发布的 Job** | 发布中途被取消 → 半成品 | 构建用 `group: build-${{ matrix.project }}` + `cancel-in-progress: false`（排队而不是取消） |
 | **matrix 部分失败** | 计划书要求「不能把部分失败伪装成全部成功」 | `fail-fast: false` + 汇总 Job 用 `needs` + `if: always()` 显式判定并 `exit 1` |
 
@@ -305,7 +310,7 @@ git add -A 后 tracked *_test.go：81 个（全部提交）
 
 | 评审结论 | 落地情况 |
 |---|---|
-| §3.1 源码不落库 | ✅ `sync.layout = "none"`：按 SHA 现场下载到 `$RUNNER_TEMP`，只提交几百字节的 `reports/upstream-state.json` |
+| §3.1 源码落库用命名空间 | ✅ `sync.layout = "vendor"`：快照提交到 `vendor/<name>/`（`git add -f` + 剔除 `.github` + `UPSTREAM.json` 记录 provenance）；`layout: "none"` 仍可选 |
 | §3.2 构建/发布分离 | ✅ `build` Job 只有 `contents: read`；发布走 OCI archive + skopeo，发布 Job 不执行上游代码 |
 | §3.3 Actions 具体坑 | ✅ 显式 `gh workflow run` + `actions: write`；`provenance: false`；lockfile 哈希缓存；`concurrency` 不打断发布；部分失败汇总 |
 | §3.4 arm64 策略 | ✅ `docker.native_per_arch` 开关 + 按架构矩阵展开 + `imagetools create` 合成 |

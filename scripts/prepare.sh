@@ -1,30 +1,18 @@
 #!/usr/bin/env bash
-# 取源码快照 + 跑架构无关的准备步骤 + 跑测试。
-# 输入：UB_* 环境变量（由 `ub.py env` 生成）；UB_SRC 为目标目录。
-# 关键点：源码只落在 $RUNNER_TEMP 下，永远不进管理仓库。
+# 准备源码 + 跑架构无关的准备步骤（assets）+ 跑测试。
+# 输入：UB_* 环境变量（由 `ub.py env` 生成）。
+# 源码布局由 sync.layout 决定：vendor（仓库内 vendor/<name>/，sync 负责落库）
+# 或 none（按 SHA 现场下载到 $RUNNER_TEMP，不进仓库）。
 set -euo pipefail
 
 source "$(dirname "$0")/lib.sh"
 export UB_REPO_ROOT="${UB_REPO_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 ub_init_paths
 
-group "取上游源码快照 (layout=none，不落库)"
-log "项目=$UB_NAME  上游=$UB_REPO  sha=$UB_SHA"
-# 已有同一 SHA 的快照就复用：工作流需要「先取源码算 lockfile 哈希、再恢复缓存」，
-# 因此 fetch 会被调用两次，这里用 marker 避免重复下载。
-if [ -f "$UB_SRC/.ub-sha" ] && [ "$(cat "$UB_SRC/.ub-sha")" = "$UB_SHA" ]; then
-  log "复用已有快照（SHA 未变）"
-else
-  ub_python fetch --project "$UB_NAME" --sha "$UB_SHA" --dest "$UB_SRC"
-  printf '%s' "$UB_SHA" > "$UB_SRC/.ub-sha"
-fi
+group "准备上游源码"
+log "项目=$UB_NAME  上游=$UB_REPO  sha=$UB_SHA  布局=${UB_SYNC_LAYOUT:-vendor}"
+ub_ensure_source
 group_end
-
-# 只取源码模式：让工作流能先算 lockfile 哈希再恢复缓存
-if is_true "${UB_FETCH_ONLY:-false}"; then
-  log "UB_FETCH_ONLY=true：只取源码，结束"
-  exit 0
-fi
 
 # build.env: 项目自定义构建环境变量
 if [ -n "${UB_ENV_JSON:-}" ] && [ "$UB_ENV_JSON" != "{}" ]; then

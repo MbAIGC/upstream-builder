@@ -38,7 +38,7 @@ built_by:       upstream-builder (GitHub Actions)
 EOF
 
   # 校验和（对包内所有文件）
-  ( cd "$ship" && find . -type f ! -name SHA256SUMS -printf '%P\n' | sort | xargs sha256sum > SHA256SUMS )
+  ( cd "$ship" && find . -type f ! -name SHA256SUMS -printf '%P\n' | sort | xargs -r sha256sum > SHA256SUMS )
 
   pkg="$UB_OUT/packages/${UB_NAME}-${UB_VERSION}-${suffix}.tar.gz"
   tar czf "$pkg" -C "$ship" .

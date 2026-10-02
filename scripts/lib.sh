@@ -43,15 +43,49 @@ if [ -z "${UB_LIB_LOADED:-}" ]; then
 
   ub_python() { python3 "${UB_REPO_ROOT:?UB_REPO_ROOT 未设置}/scripts/ub.py" "$@"; }
 
-  # 工作目录的唯一来源。工作流里 fetch 与 build 是两个步骤，
+  # 工作目录的唯一来源。工作流里「取源码」和「构建」是两个步骤，
   # 如果各自算一遍路径就会漂移（UB_SRC 未设置就是这么炸的）。
   # 已有的值优先复用，便于工作流通过 $GITHUB_ENV 传入。
   ub_init_paths() {
+    export UB_REPO_ROOT="${UB_REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
     export UB_WORK="${UB_WORK:-${RUNNER_TEMP:-/tmp}/ub}"
-    export UB_SRC="${UB_SRC:-$UB_WORK/src/${UB_NAME:?UB_NAME 未设置}}"
     export UB_DIST="${UB_DIST:-$UB_WORK/dist}"
-    export UB_OUT="${UB_OUT:-$UB_WORK/out-${UB_ENTRY:-$UB_NAME}}"
-    mkdir -p "$UB_WORK/src" "$UB_DIST" "$UB_OUT"
+    export UB_OUT="${UB_OUT:-$UB_WORK/out-${UB_ENTRY:-${UB_NAME:?UB_NAME 未设置}}}"
+    if [ "${UB_SYNC_LAYOUT:-vendor}" = "vendor" ]; then
+      # 落库布局：源码就是仓库里的快照，不复制到临时目录（大仓库复制很贵）
+      export UB_SRC="${UB_SRC:-$UB_REPO_ROOT/${UB_VENDOR_DIR:-vendor}/${UB_NAME:?UB_NAME 未设置}}"
+    else
+      export UB_SRC="${UB_SRC:-$UB_WORK/src/${UB_NAME:?UB_NAME 未设置}}"
+      mkdir -p "$UB_SRC"
+    fi
+    mkdir -p "$UB_WORK" "$UB_DIST" "$UB_OUT"
+  }
+
+  # 保证 UB_SRC 里是 UB_SHA 对应的源码。幂等，可重复调用。
+  ub_ensure_source() {
+    ub_init_paths
+    if [ "${UB_SYNC_LAYOUT:-vendor}" = "vendor" ]; then
+      local up="$UB_SRC/UPSTREAM.json" cur=""
+      if [ -f "$up" ]; then
+        cur="$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1])).get("sha",""))' "$up" 2>/dev/null || true)"
+      fi
+      if [ "$cur" = "$UB_SHA" ]; then
+        log "复用仓库内快照（${UB_VENDOR_DIR:-vendor}/$UB_NAME，sha=${UB_SHA:0:12}）"
+      else
+        warn "仓库内快照与目标 SHA 不一致（现有=${cur:-<无>} 目标=$UB_SHA），现场补同步"
+        ub_python vendor --project "$UB_NAME" --sha "$UB_SHA" --version "$UB_VERSION" --dest "$UB_SRC" >/dev/null
+        log "已补齐快照：$UB_SRC"
+      fi
+      [ -d "$UB_SRC" ] || die "快照目录不存在: $UB_SRC"
+      [ -f "$UB_SRC/UPSTREAM.json" ] || die "快照缺少 UPSTREAM.json: $UB_SRC（应含上游 SHA 与源码树摘要）"
+    else
+      if [ -f "$UB_SRC/.ub-sha" ] && [ "$(cat "$UB_SRC/.ub-sha")" = "$UB_SHA" ]; then
+        log "复用已有下载快照（SHA 未变）"
+      else
+        ub_python fetch --project "$UB_NAME" --sha "$UB_SHA" --dest "$UB_SRC"
+        printf '%s' "$UB_SHA" > "$UB_SRC/.ub-sha"
+      fi
+    fi
   }
 
   # 展开 build.native_command 里的占位符

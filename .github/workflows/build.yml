@@ -143,11 +143,11 @@ jobs:
             echo "UB_METHOD=$BUILD_TYPE" >> "$GITHUB_ENV"
           fi
 
-      # 工具链：注意本设计源码不落库，checkout 时仓库里没有 go.sum / package-lock.json，
-      # 所以不能用 setup-go/setup-node 的 cache:true（找不到锁文件会直接失败）。
-      # 正确顺序：先取源码 -> 算 lockfile 哈希 -> actions/cache -> 构建。
-      # setup-go 默认 cache: true，会去找仓库根目录的 go.sum —— 源码不落库时找不到，
-      # 直接失败。所以必须显式关掉，改由下面的 actions/cache 用 lockfile 哈希缓存。
+      # 工具链：锁文件在 vendor/<name>/ 里而不在仓库根目录，setup-go / setup-node 的
+      # cache:true 只会去根目录找（找不到直接失败）。正确顺序：
+      # 源码就绪 -> 算 lockfile 哈希 -> actions/cache -> 构建。
+      # setup-go 默认 cache:true 会去找仓库根目录的 go.sum（在 vendor/<name>/ 里找不到），
+      # 所以必须显式关掉，改由下面的 actions/cache 按 lockfile 哈希缓存。
       - name: 安装 Go
         if: env.UB_LANGUAGE == 'go'
         uses: actions/setup-go@v5
@@ -169,10 +169,10 @@ jobs:
         with:
           python-version: ${{ env.UB_PYTHON_VERSION }}
 
-      - name: 预取源码（用于计算依赖锁文件哈希）
+      - name: 源码就绪（落库布局直接用仓库快照；不一致则现场补同步）
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: bash scripts/fetch-only.sh
+        run: bash scripts/source-step.sh
 
       - name: 计算依赖锁文件哈希
         id: lock
@@ -316,18 +316,11 @@ jobs:
         continue-on-error: true
         run: bash scripts/record-all.sh
 
-      - name: 提交同步状态
-        run: |
-          set -euo pipefail
-          if [ -n "$(git status --porcelain reports/upstream-state.json)" ]; then
-            git config user.name  "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add reports/upstream-state.json
-            git commit -m "chore(state): 更新构建状态 [skip ci]"
-            git push
-          else
-            echo "状态无变化，无需提交"
-          fi
+      - name: 提交构建状态
+        run: >-
+          bash scripts/commit-and-push.sh
+          "chore(state): 更新构建状态 [skip ci]"
+          reports/upstream-state.json
 
       - name: 上传构建报告
         if: always()

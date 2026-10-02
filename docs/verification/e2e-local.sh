@@ -10,11 +10,10 @@ set -uo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 WORK="${WORK:-$(mktemp -d)}"
 
-command -v go >/dev/null 2>&1 || {
-  echo "需要本机 Go 工具链（本脚本验证的是原生编译路径）。"
-  echo "没有 Go 也可以看 poc_go.sh —— 它用 golang 容器跑。"
-  exit 1
-}
+# 只有 method=native 的项目才需要本机工具链；method=dockerfile 的编译在容器里完成
+if ! command -v go >/dev/null 2>&1; then
+  echo "提示：本机没有 Go。method=dockerfile 的项目不受影响；method=native 的会在编译步骤失败。"
+fi
 
 export UB_REPO_ROOT="$REPO_ROOT"
 export UB_WORK="$WORK"
@@ -28,9 +27,13 @@ mkdir -p "$UB_WORK/tmp"
 cd "$UB_REPO_ROOT"
 echo "工作目录: $UB_WORK"
 
+# 用临时状态文件，避免污染仓库里交付的 reports/upstream-state.json
+STATE="$UB_WORK/state.json"
+
 for proj in "$@"; do
   echo "================= $proj ================="
-  eval "$(python3 scripts/ub.py env --project "$proj" --owner acme)"
+  python3 scripts/ub.py plan --project "$proj" --state "$STATE" >/dev/null 2>&1 || true
+  eval "$(python3 scripts/ub.py env --project "$proj" --owner acme --state "$STATE")"
   export UB_ENTRY="$UB_NAME"
   export UB_NATIVE_PER_ARCH=false
   # 本地验证默认跳过前端 npm 安装（耗时且需要 npm registry），其余流程完全一致。

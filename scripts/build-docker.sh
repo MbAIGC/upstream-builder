@@ -15,7 +15,7 @@ need docker
 # 平台列表只从 UB_DOCKER_TARGETS 推导（单一事实来源）。
 # 之前的写法另外维护了一个 UB_DOCKER_PLATFORMS，矩阵收窄目标时两者会不一致，
 # 结果在一个没有 arm64 模拟器的 runner 上仍然去构建 arm64 -> exec format error。
-platforms="$(printf '%s' $UB_DOCKER_TARGETS | tr ' ' ',')"
+platforms="${UB_DOCKER_TARGETS// /,}"   # 纯 bash 展开：printf '%s' $VAR 会把多个词粘连
 log "docker targets: [$UB_DOCKER_TARGETS] -> platforms=$platforms"
 
 mkdir -p "$UB_OUT"
