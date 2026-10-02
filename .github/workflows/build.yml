@@ -51,6 +51,7 @@ jobs:
       contents: read
     outputs:
       has_work: ${{ steps.plan.outputs.has_work }}
+      has_release: ${{ steps.plan.outputs.has_release }}
       matrix: ${{ steps.plan.outputs.matrix }}
       projects: ${{ steps.plan.outputs.projects }}
     steps:
@@ -259,9 +260,10 @@ jobs:
           retention-days: 14
 
   # ---------------------------------------------------------------- 发布 Release
+  # 只有确实有项目要发 Release 时才起这个 Job（upstream.json 里 release.enabled=false 就跳过）
   publish-release:
     needs: [plan, build]
-    if: ${{ always() && needs.plan.outputs.has_work == 'true' && inputs.publish }}
+    if: ${{ always() && needs.plan.outputs.has_work == 'true' && needs.plan.outputs.has_release == 'true' && inputs.publish }}
     runs-on: ubuntu-latest
     permissions:
       contents: write          # 只有这一层能写 Release

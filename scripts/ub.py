@@ -325,7 +325,7 @@ def validate_project(where, proj, defaults) -> list:
 
     # ---- release ----
     release = proj.get("release", {})
-    p += _check_keys(f"{where}.release", release, RELEASE_KEYS)
+    p += _check_keys(f"{where}.release", release, RELEASE_KEYS | {"_note"})
     if isinstance(release, dict) and release.get("enabled"):
         ts = release.get("tag_strategy")
         if ts not in TAG_STRATEGIES:
@@ -850,7 +850,10 @@ def cmd_plan(args):
 
     save_state(sp, st)
     matrix = {"include": include}
-    payload = {"has_work": bool(include), "matrix": matrix, "summary": summary}
+    # 是否有任何项目要发 Release：没有就让 publish-release Job 直接跳过，别浪费 runner
+    has_release = any(e["release"] for e in include)
+    payload = {"has_work": bool(include), "has_release": has_release,
+               "matrix": matrix, "summary": summary}
 
     for row in summary:
         flag = "BUILD" if row["build"] else "skip "
@@ -861,6 +864,7 @@ def cmd_plan(args):
         if out:
             with open(out, "a", encoding="utf-8") as f:
                 f.write(f"has_work={'true' if include else 'false'}\n")
+                f.write(f"has_release={'true' if has_release else 'false'}\n")
                 f.write("matrix=" + json.dumps(matrix) + "\n")
                 f.write("projects=" + ",".join(e["name"] for e in include) + "\n")
                 pins = {e["name"]: {"sha": e["sha"], "version": e["version"]} for e in include}
@@ -949,7 +953,7 @@ def cmd_env(args):
         "UB_SMOKE_COMMAND": smoke.get("command", ""),
         "UB_SMOKE_ARCH": smoke_arch,
         "UB_RELEASE_ENABLED": "true" if release.get("enabled") else "false",
-        "UB_RELEASE_BINARY": "true" if release.get("binary") else "false",
+        "UB_RELEASE_BINARY": "true" if (release.get("enabled") and release.get("binary")) else "false",
         "UB_RELEASE_TAG_STRATEGY": release.get("tag_strategy", ""),
         "UB_RELEASE_ASSETS": " ".join(release.get("assets", []) or []),
         "UB_RELEASE_TAG": release_tag(proj, version),

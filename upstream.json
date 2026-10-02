@@ -61,9 +61,10 @@
         }
       },
       "release": {
-        "enabled": true,
+        "enabled": false,
         "binary": false,
-        "tag_strategy": "upstream-tag"
+        "tag_strategy": "upstream-tag",
+        "_note": "release.enabled=false：当前不发 GitHub Release，只发布 GHCR 镜像"
       }
     },
     {
@@ -134,14 +135,15 @@
         }
       },
       "release": {
-        "enabled": true,
+        "enabled": false,
         "binary": true,
         "tag_strategy": "rolling-prerelease",
         "assets": [
           "linux-amd64",
           "linux-arm64",
           "windows-amd64"
-        ]
+        ],
+        "_note": "release.enabled=false：当前不发 GitHub Release，只发布 GHCR 镜像"
       }
     }
   ]

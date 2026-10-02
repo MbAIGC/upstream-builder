@@ -39,7 +39,7 @@ build.yml
   plan            解析要构建的项目，输出 matrix（含每项的目标架构）
   build  ×N       【只读凭据】取源码 -> 测试 -> 编译 -> smoke 门禁 -> OCI archive -> 打包
   publish-image   【packages:write】OCI archive -> push 不可变 sha 标签 -> 校验架构 -> 晋升 latest
-  publish-release 【contents:write】上传二进制包，补齐缺失资产，不覆盖已有正式版本
+  publish-release 【contents:write】上传二进制包（**当前已关闭**，见下）
   record          【contents:write】写状态、生成报告、如实反映部分失败
 
 manual-build.yml  人工入口，参数名与计划书一致（project/force/publish/platforms/build_type）
@@ -193,6 +193,11 @@ docs/verification/          本地实测日志与复现脚本
 
 > **Release tag 带项目前缀**：Release 是仓库级命名空间，N 个项目共用一个仓库，
 > 所以 tag 形如 `cline2api/v1.6.4`、`cline-pass-switcher-go/rolling`，否则会互相覆盖。
+>
+> **当前不发 GitHub Release**：`release.enabled` 都是 `false`，只发布 GHCR 镜像。
+> 该 Job 还会被 `plan` 输出的 `has_release` 直接跳过，不占用 runner。
+> 想开回来：把某个项目的 `release.enabled` 改成 `true`（`binary` 与 `tag_strategy` 已经配好，
+> 不用改别的）。Release 的四种情形（新建 / 滚动更新 / 正式版不覆盖 / 只补缺失资产）已用桩程序验证。
 
 ### 健康检查不能猜
 
