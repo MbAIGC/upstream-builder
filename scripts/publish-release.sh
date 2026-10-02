@@ -98,7 +98,7 @@ fi
 rm -f "$notes"
 
 mkdir -p "${UB_OUT:-/tmp/ub-out}"
-python3 - "${UB_OUT:-/tmp/ub-out}/released.json" "$tag" <<'PY'
+python3 - "${UB_OUT:-/tmp/ub-out}/released-${name}.json" "$tag" <<'PY'
 import json, os, sys
 json.dump({"name": os.environ.get("UB_NAME",""), "release_tag": sys.argv[2],
            "status": "success"}, open(sys.argv[1],"w"), indent=2, ensure_ascii=False)

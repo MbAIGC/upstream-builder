@@ -9,6 +9,20 @@ run_id="${UB_RUN_ID:-local}"
 results_dir="${UB_RESULTS_DIR:-reports/run-results}"
 mkdir -p "$results_dir"
 
+# 发布元数据（published.json / released.json）由发布 Job 单独上传成一个 artifact，
+# 不在 result.json 同目录。按项目名建索引，否则镜像摘要永远取不到（计划 7.2/11.2 要求记录）。
+declare -A PUB_BY_NAME REL_BY_NAME
+while read -r f; do
+  [ -n "$f" ] || continue
+  n="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("name",""))' "$f" 2>/dev/null || true)"
+  [ -n "$n" ] && PUB_BY_NAME["$n"]="$f"
+done < <(find "$UB_ARTIFACTS" -name 'published*.json' 2>/dev/null)
+while read -r f; do
+  [ -n "$f" ] || continue
+  n="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("name",""))' "$f" 2>/dev/null || true)"
+  [ -n "$n" ] && REL_BY_NAME["$n"]="$f"
+done < <(find "$UB_ARTIFACTS" -name 'released*.json' 2>/dev/null)
+
 failed=0
 count=0
 
@@ -27,15 +41,23 @@ print(d.get("name",""), d.get("status",""), d.get("sha",""), d.get("version","")
   count=$((count + 1))
 
   digest=""; image=""; release_tag=""
-  if [ -f "$dir/published.json" ]; then
+  pub="${PUB_BY_NAME[$name]:-}"
+  [ -n "$pub" ] || pub="$dir/published.json"
+  if [ -f "$pub" ]; then
     read -r digest image < <(python3 -c '
 import json,sys
 d=json.load(open(sys.argv[1]))
 print(d.get("digest",""), d.get("image",""))
-' "$dir/published.json")
+' "$pub")
   fi
-  if [ -f "$dir/released.json" ]; then
-    release_tag="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("release_tag",""))' "$dir/released.json")"
+  # release_tag 优先取发布结果，取不到就用构建结果里的（result.json 已带该字段）
+  rel="${REL_BY_NAME[$name]:-}"
+  [ -n "$rel" ] || rel="$dir/released.json"
+  if [ -f "$rel" ]; then
+    release_tag="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("release_tag",""))' "$rel")"
+  fi
+  if [ -z "$release_tag" ]; then
+    release_tag="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("release_tag",""))' "$res")"
   fi
 
   platforms="$(python3 -c '

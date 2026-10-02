@@ -118,7 +118,8 @@ done
 log "标签晋升完成，全部指向 $digest"
 
 mkdir -p "${UB_OUT:-/tmp/ub-out}"
-python3 - "${UB_OUT:-/tmp/ub-out}/published.json" "$digest" <<'PY'
+# 文件名带项目名：同一个发布 Job 会依次发布多个项目，共用一个文件名会互相覆盖
+python3 - "${UB_OUT:-/tmp/ub-out}/published-${UB_NAME}.json" "$digest" <<'PY'
 import json, os, sys
 out = {
     "name": os.environ["UB_NAME"],
