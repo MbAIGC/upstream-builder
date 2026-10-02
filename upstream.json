@@ -1,0 +1,147 @@
+{
+  "version": 2,
+  "defaults": {
+    "targets": [
+      "linux/amd64",
+      "linux/arm64"
+    ],
+    "continue_on_error": true
+  },
+  "sync": {
+    "layout": "none",
+    "state_file": "reports/upstream-state.json"
+  },
+  "projects": [
+    {
+      "name": "cline2api",
+      "repo": "https://github.com/luawei1/cline2api",
+      "ref": {
+        "type": "release-latest"
+      },
+      "version_source": "tag",
+      "build": {
+        "enabled": true,
+        "language": "go",
+        "method": "dockerfile",
+        "go_version": "1.26",
+        "workdir": ".",
+        "package": ".",
+        "binary": "cline-proxy",
+        "ldflags": "-s -w",
+        "cross_compile": true,
+        "test": {
+          "enabled": true,
+          "required": false
+        }
+      },
+      "docker": {
+        "enabled": true,
+        "strategy": "upstream",
+        "image": "ghcr.io/{owner}/cline2api",
+        "dockerfile": "Dockerfile",
+        "context": ".",
+        "provenance": false,
+        "tags": [
+          "sha-{short_sha}",
+          "latest",
+          "{version}"
+        ],
+        "targets": [
+          "linux/amd64",
+          "linux/arm64"
+        ],
+        "smoke": {
+          "container_port": 3457,
+          "path": "/health",
+          "expect": [
+            200
+          ],
+          "timeout": 90
+        }
+      },
+      "release": {
+        "enabled": true,
+        "binary": false,
+        "tag_strategy": "upstream-tag"
+      }
+    },
+    {
+      "name": "cline-pass-switcher-go",
+      "repo": "https://github.com/Hxjcc/cline-pass-switcher-go",
+      "ref": {
+        "type": "branch",
+        "value": "main"
+      },
+      "version_source": "sha",
+      "throttle": {
+        "min_interval_hours": 24
+      },
+      "build": {
+        "enabled": true,
+        "language": "go",
+        "method": "native",
+        "go_version": "1.25",
+        "workdir": ".",
+        "package": "./cmd/cline-pass-switcher",
+        "binary": "cline-pass-switcher",
+        "ldflags": "-s -w",
+        "trimpath": true,
+        "cross_compile": true,
+        "targets": [
+          "linux/amd64",
+          "linux/arm64",
+          "windows/amd64"
+        ],
+        "assets": [
+          {
+            "run": "npm ci",
+            "workdir": "web"
+          },
+          {
+            "run": "npm run build",
+            "workdir": "web"
+          }
+        ],
+        "test": {
+          "enabled": true,
+          "required": false
+        }
+      },
+      "docker": {
+        "enabled": true,
+        "strategy": "upstream",
+        "image": "ghcr.io/{owner}/cline-pass-switcher-go",
+        "dockerfile": "Dockerfile",
+        "context": ".",
+        "provenance": false,
+        "tags": [
+          "sha-{short_sha}",
+          "latest"
+        ],
+        "targets": [
+          "linux/amd64",
+          "linux/arm64"
+        ],
+        "smoke": {
+          "container_port": 3123,
+          "path": "/",
+          "expect": [
+            200,
+            403
+          ],
+          "timeout": 90
+        }
+      },
+      "release": {
+        "enabled": true,
+        "binary": true,
+        "tag_strategy": "rolling-prerelease",
+        "assets": [
+          "linux-amd64",
+          "linux-arm64",
+          "windows-amd64"
+        ]
+      }
+    }
+  ]
+}

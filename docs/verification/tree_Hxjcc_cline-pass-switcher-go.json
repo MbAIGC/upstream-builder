@@ -1,0 +1,2053 @@
+{
+  "sha": "feb3fa342260a89d58268a2e3de257587b284f1b",
+  "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/trees/feb3fa342260a89d58268a2e3de257587b284f1b",
+  "tree": [
+    {
+      "path": ".dockerignore",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cc51eab6ad3af1fc37635343d24d7aa4d13d529d",
+      "size": 122,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/cc51eab6ad3af1fc37635343d24d7aa4d13d529d"
+    },
+    {
+      "path": ".gitattributes",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "526c8a38d4a53c339833267bbf86577f023ec507",
+      "size": 16,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/526c8a38d4a53c339833267bbf86577f023ec507"
+    },
+    {
+      "path": ".github",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "5f6874283b51138c5a6460bdb40a6365f4bf0b5c",
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/trees/5f6874283b51138c5a6460bdb40a6365f4bf0b5c"
+    },
+    {
+      "path": ".github/workflows",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "935423d5df6dbb0968a57addd1c5c3251e12556f",
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/trees/935423d5df6dbb0968a57addd1c5c3251e12556f"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a91adc88268eedc6a3b69a138b623e7b2690a245",
+      "size": 2316,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/a91adc88268eedc6a3b69a138b623e7b2690a245"
+    },
+    {
+      "path": ".gitignore",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "90abb1e451e58abcfc609fd9bdbd00b534922304",
+      "size": 474,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/90abb1e451e58abcfc609fd9bdbd00b534922304"
+    },
+    {
+      "path": "Dockerfile",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "46cab225622e894eed421ba59ea112fef4444cb8",
+      "size": 1234,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/46cab225622e894eed421ba59ea112fef4444cb8"
+    },
+    {
+      "path": "LICENSE",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "77af99aa0111d03baa06af294d25d73fd52a510b",
+      "size": 1089,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/77af99aa0111d03baa06af294d25d73fd52a510b"
+    },
+    {
+      "path": "README.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a299933a43e21aa9d80253025d2417b7faacc526",
+      "size": 11604,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/a299933a43e21aa9d80253025d2417b7faacc526"
+    },
+    {
+      "path": "cmd",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "8ec47b788ee17d3b463705c370127caff6015135",
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/trees/8ec47b788ee17d3b463705c370127caff6015135"
+    },
+    {
+      "path": "cmd/cline-pass-switcher",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "eb126e2447ecde351d3b1e6d60d9a4ff171a9b4d",
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/trees/eb126e2447ecde351d3b1e6d60d9a4ff171a9b4d"
+    },
+    {
+      "path": "cmd/cline-pass-switcher/main.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fe17702f5a4af8a01ab003b026501d56e457664b",
+      "size": 4711,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/fe17702f5a4af8a01ab003b026501d56e457664b"
+    },
+    {
+      "path": "cmd/cline-pass-switcher/main_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "53580cb2c35b07c0ea4407a54da3b2bcc7683e80",
+      "size": 13184,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/53580cb2c35b07c0ea4407a54da3b2bcc7683e80"
+    },
+    {
+      "path": "config.example.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cfee97ac4a464a4d74a6c8bc67a64709b2703cac",
+      "size": 760,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/cfee97ac4a464a4d74a6c8bc67a64709b2703cac"
+    },
+    {
+      "path": "docker-compose.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "36a27d2090425006fec7cb542456645c5b04782b",
+      "size": 2937,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/36a27d2090425006fec7cb542456645c5b04782b"
+    },
+    {
+      "path": "docker-entrypoint.sh",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1f93ce3acdaf12048aa532a73634e385836104cd",
+      "size": 558,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/1f93ce3acdaf12048aa532a73634e385836104cd"
+    },
+    {
+      "path": "docs",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "ce56527a9fbed7f2ff47acf3f9c4821f6baf04f2",
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/trees/ce56527a9fbed7f2ff47acf3f9c4821f6baf04f2"
+    },
+    {
+      "path": "docs/api.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e3843d2b4fa9c3a0f3e1b20a99d4d1468f12a105",
+      "size": 15474,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/e3843d2b4fa9c3a0f3e1b20a99d4d1468f12a105"
+    },
+    {
+      "path": "docs/configuration.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0fdf728bc28fad194002861fc86f0342c843f2c2",
+      "size": 13910,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/0fdf728bc28fad194002861fc86f0342c843f2c2"
+    },
+    {
+      "path": "docs/development.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ea9b1c3ac0a39fee1caf4b9aeae213e9d4223d1c",
+      "size": 3768,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/ea9b1c3ac0a39fee1caf4b9aeae213e9d4223d1c"
+    },
+    {
+      "path": "docs/operations.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "27a30485f7fb165dd2b43115370179b78a1aff80",
+      "size": 11489,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/27a30485f7fb165dd2b43115370179b78a1aff80"
+    },
+    {
+      "path": "docs/protocol-compatibility.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c08024f78a54bb5fcb3471be69332e306ffaf7db",
+      "size": 15591,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/c08024f78a54bb5fcb3471be69332e306ffaf7db"
+    },
+    {
+      "path": "docs/routing.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4e2937a7fcab7fdd6ab2bea31f4f88124421467b",
+      "size": 9859,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/4e2937a7fcab7fdd6ab2bea31f4f88124421467b"
+    },
+    {
+      "path": "go.mod",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9760d6d926f42ddf5fa0a58bf8127a02e57fd821",
+      "size": 174,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/9760d6d926f42ddf5fa0a58bf8127a02e57fd821"
+    },
+    {
+      "path": "go.sum",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5b447c861f2c8e5d7e72b537b9b6a548e5129706",
+      "size": 527,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/5b447c861f2c8e5d7e72b537b9b6a548e5129706"
+    },
+    {
+      "path": "internal",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "dd8003f2b518febcaaf737b23a064c32074b1961",
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/trees/dd8003f2b518febcaaf737b23a064c32074b1961"
+    },
+    {
+      "path": "internal/apierr",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "355e8337777a8396e021791f8addb5b615f78505",
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/trees/355e8337777a8396e021791f8addb5b615f78505"
+    },
+    {
+      "path": "internal/apierr/apierr.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d1e81e6e8511ae41a5498af84ea200d98e48b20e",
+      "size": 7008,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/d1e81e6e8511ae41a5498af84ea200d98e48b20e"
+    },
+    {
+      "path": "internal/apierr/apierr_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "29e9cf0a2ce8856a4159591ac9ec2ac3e0a6a66b",
+      "size": 2691,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/29e9cf0a2ce8856a4159591ac9ec2ac3e0a6a66b"
+    },
+    {
+      "path": "internal/httpapi",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "98760ad4a9cb1304cc06a54e7e24a54ea345383a",
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/trees/98760ad4a9cb1304cc06a54e7e24a54ea345383a"
+    },
+    {
+      "path": "internal/httpapi/accounting_health_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9b6432642d5e62d7b299545ec8f8c8ea15c5748b",
+      "size": 7099,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/9b6432642d5e62d7b299545ec8f8c8ea15c5748b"
+    },
+    {
+      "path": "internal/httpapi/accounts.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0befd7ab59f65c9889b2e6636c5885c0343f8aca",
+      "size": 3217,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/0befd7ab59f65c9889b2e6636c5885c0343f8aca"
+    },
+    {
+      "path": "internal/httpapi/accounts_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "450c0a0520126aaadb310027d4f31f1ac3020259",
+      "size": 9522,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/450c0a0520126aaadb310027d4f31f1ac3020259"
+    },
+    {
+      "path": "internal/httpapi/clientkey.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e099aed1620bb26934a1a21875f3d845cd6aed9f",
+      "size": 9767,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/e099aed1620bb26934a1a21875f3d845cd6aed9f"
+    },
+    {
+      "path": "internal/httpapi/clientkey_regression_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9f6b6ad439f11ad5aeedd1c9f1190eb5087a0369",
+      "size": 8380,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/9f6b6ad439f11ad5aeedd1c9f1190eb5087a0369"
+    },
+    {
+      "path": "internal/httpapi/clientkey_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3c77d8e7da91b863ab8b97bc8a61f67a9b8c072b",
+      "size": 14446,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/3c77d8e7da91b863ab8b97bc8a61f67a9b8c072b"
+    },
+    {
+      "path": "internal/httpapi/compaction_trigger_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f599ca740d6c69e07c1b54a325399ba1d65960a0",
+      "size": 19821,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/f599ca740d6c69e07c1b54a325399ba1d65960a0"
+    },
+    {
+      "path": "internal/httpapi/compaction_usage_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b88db03686382d4287ba6f72526b78162bd578a7",
+      "size": 4184,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/b88db03686382d4287ba6f72526b78162bd578a7"
+    },
+    {
+      "path": "internal/httpapi/desktop_compat_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6d67fac23af0340bdb53db26bf9fdde7510ddc83",
+      "size": 6501,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/6d67fac23af0340bdb53db26bf9fdde7510ddc83"
+    },
+    {
+      "path": "internal/httpapi/failover_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b51fad0b27bd4e39bab70bcbf625cb4f232afd2e",
+      "size": 25704,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/b51fad0b27bd4e39bab70bcbf625cb4f232afd2e"
+    },
+    {
+      "path": "internal/httpapi/gateway_meta.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7f80d5eb5d3da3bcff73069c56a061f5ab7fe970",
+      "size": 4336,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/7f80d5eb5d3da3bcff73069c56a061f5ab7fe970"
+    },
+    {
+      "path": "internal/httpapi/gateway_meta_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "30c43484bc94d3a5ab75503de582abe56219a882",
+      "size": 9353,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/30c43484bc94d3a5ab75503de582abe56219a882"
+    },
+    {
+      "path": "internal/httpapi/gzip_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "575afdac15081fc57354e7fec165693e9ac75104",
+      "size": 5551,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/575afdac15081fc57354e7fec165693e9ac75104"
+    },
+    {
+      "path": "internal/httpapi/helpers_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "58b0818d8bce63ba88f84439b9fd080d19571102",
+      "size": 2279,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/58b0818d8bce63ba88f84439b9fd080d19571102"
+    },
+    {
+      "path": "internal/httpapi/history_stats.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "153d8f59607cb92320061a43baa99916c1ca7cae",
+      "size": 11657,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/153d8f59607cb92320061a43baa99916c1ca7cae"
+    },
+    {
+      "path": "internal/httpapi/history_stats_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "43e858f9d60b4f864b88f4faae328403251b3096",
+      "size": 5072,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/43e858f9d60b4f864b88f4faae328403251b3096"
+    },
+    {
+      "path": "internal/httpapi/history_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "349ed49cece747572a577d01e16e35d217a7492d",
+      "size": 6170,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/349ed49cece747572a577d01e16e35d217a7492d"
+    },
+    {
+      "path": "internal/httpapi/keys.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "301b9229ccc2923e9ee7e46fced3e34771e4cfc2",
+      "size": 7577,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/301b9229ccc2923e9ee7e46fced3e34771e4cfc2"
+    },
+    {
+      "path": "internal/httpapi/long_stream_manual_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7666b6cf3906280aa69bb4d79ab06d6a80a6fff4",
+      "size": 3109,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/7666b6cf3906280aa69bb4d79ab06d6a80a6fff4"
+    },
+    {
+      "path": "internal/httpapi/protocol_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d32d6a36d70b360f65db194dce527b70018e3bab",
+      "size": 3864,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/d32d6a36d70b360f65db194dce527b70018e3bab"
+    },
+    {
+      "path": "internal/httpapi/quota_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4fe45f223dc618e1f6705e3eee3a3062268c0682",
+      "size": 6121,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/4fe45f223dc618e1f6705e3eee3a3062268c0682"
+    },
+    {
+      "path": "internal/httpapi/record.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f702faf9d5608a657c37b13b2fdf3146c9e2f7a4",
+      "size": 1480,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/f702faf9d5608a657c37b13b2fdf3146c9e2f7a4"
+    },
+    {
+      "path": "internal/httpapi/responses.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "154d8b9ddf3772f2cd62313192c4e2b35b64b081",
+      "size": 27721,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/154d8b9ddf3772f2cd62313192c4e2b35b64b081"
+    },
+    {
+      "path": "internal/httpapi/responses_regression_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "315d4e3f9457a355f86d21a118e4941c40ea04cd",
+      "size": 13479,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/315d4e3f9457a355f86d21a118e4941c40ea04cd"
+    },
+    {
+      "path": "internal/httpapi/security.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e8840004c2113a6e78462e7080eb5f7047cd916a",
+      "size": 5528,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/e8840004c2113a6e78462e7080eb5f7047cd916a"
+    },
+    {
+      "path": "internal/httpapi/security_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "21208320ff9447cf6ad900c0679f59fdcd6a9c90",
+      "size": 10908,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/21208320ff9447cf6ad900c0679f59fdcd6a9c90"
+    },
+    {
+      "path": "internal/httpapi/seed_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0fb7213b9eee1ac210be0215047a46532994b2c2",
+      "size": 935,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/0fb7213b9eee1ac210be0215047a46532994b2c2"
+    },
+    {
+      "path": "internal/httpapi/server.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2fbe4b548a3eb0f44f2baafc9b60a872c9748d65",
+      "size": 40587,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/2fbe4b548a3eb0f44f2baafc9b60a872c9748d65"
+    },
+    {
+      "path": "internal/httpapi/server_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "82729157e5a2503dcc35f78e4ed8a41dbf370a21",
+      "size": 32369,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/82729157e5a2503dcc35f78e4ed8a41dbf370a21"
+    },
+    {
+      "path": "internal/httpapi/session_record_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8d4dd29ef0e8c9b0625483347365bc02e3e85d4c",
+      "size": 3504,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/8d4dd29ef0e8c9b0625483347365bc02e3e85d4c"
+    },
+    {
+      "path": "internal/httpapi/settings.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "04af7c2f0e92fcd87f92470909c5039b02acd08a",
+      "size": 5295,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/04af7c2f0e92fcd87f92470909c5039b02acd08a"
+    },
+    {
+      "path": "internal/httpapi/settings_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "25a096313c969efc7fd59887e6d3cd2e8126a83a",
+      "size": 4444,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/25a096313c969efc7fd59887e6d3cd2e8126a83a"
+    },
+    {
+      "path": "internal/httpapi/shell_compat_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6291ca270174810b3e87715806f8ee14d87d435d",
+      "size": 4828,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/6291ca270174810b3e87715806f8ee14d87d435d"
+    },
+    {
+      "path": "internal/httpapi/spend.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "36b6e94324becdd56a25e9976d2c500d3cd869da",
+      "size": 518,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/36b6e94324becdd56a25e9976d2c500d3cd869da"
+    },
+    {
+      "path": "internal/httpapi/spend_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ddfe5a1ba87d180bb7f8f5fb4ec02bf1ae162c9c",
+      "size": 10674,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/ddfe5a1ba87d180bb7f8f5fb4ec02bf1ae162c9c"
+    },
+    {
+      "path": "internal/httpapi/stream.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d78e392c0b1fe63553b7c92a563a1b514a96da69",
+      "size": 12655,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/d78e392c0b1fe63553b7c92a563a1b514a96da69"
+    },
+    {
+      "path": "internal/httpapi/stream_bounds_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9ee6fb8811a6c41abf4d504e5f3d5cc3e86695db",
+      "size": 3529,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/9ee6fb8811a6c41abf4d504e5f3d5cc3e86695db"
+    },
+    {
+      "path": "internal/httpapi/stream_endpoint_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e91d04c4a971d415618217d1dda6a08f1f38a331",
+      "size": 22037,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/e91d04c4a971d415618217d1dda6a08f1f38a331"
+    },
+    {
+      "path": "internal/httpapi/stream_fixture_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ccd6e489d44ffc0ae145fd72ede55744974d1608",
+      "size": 12354,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/ccd6e489d44ffc0ae145fd72ede55744974d1608"
+    },
+    {
+      "path": "internal/httpapi/stream_pump.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "51cac1e9765ba46f000126928c8b9451ef622a4e",
+      "size": 2887,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/51cac1e9765ba46f000126928c8b9451ef622a4e"
+    },
+    {
+      "path": "internal/httpapi/stream_replay.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "be81ab199b5d3fb9d02a4c4873022ef72c7d324c",
+      "size": 5920,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/be81ab199b5d3fb9d02a4c4873022ef72c7d324c"
+    },
+    {
+      "path": "internal/httpapi/stream_replay_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "94cfa0bfbea978e6d8329e7375dd13615eb4f222",
+      "size": 13562,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/94cfa0bfbea978e6d8329e7375dd13615eb4f222"
+    },
+    {
+      "path": "internal/httpapi/stream_share.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "01b8ce8d961733364f04240027763ec65634e479",
+      "size": 16637,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/01b8ce8d961733364f04240027763ec65634e479"
+    },
+    {
+      "path": "internal/httpapi/stream_stress_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "eb5de5499b0a7ba3f2fa867463922d130d646b04",
+      "size": 3960,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/eb5de5499b0a7ba3f2fa867463922d130d646b04"
+    },
+    {
+      "path": "internal/httpapi/stream_writer.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0b77ef1b381d7028eba0590f43a672522cd32254",
+      "size": 703,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/0b77ef1b381d7028eba0590f43a672522cd32254"
+    },
+    {
+      "path": "internal/httpapi/structured_output_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "55726cb35c55c11d8211cef6de3614247951dcfd",
+      "size": 10361,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/55726cb35c55c11d8211cef6de3614247951dcfd"
+    },
+    {
+      "path": "internal/httpapi/testdata",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "5f3603a2d9c32477250499f5a076224d911af4bb",
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/trees/5f3603a2d9c32477250499f5a076224d911af4bb"
+    },
+    {
+      "path": "internal/httpapi/testdata/README.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "465e7abd57c1b516030b557c2790f4d2b0a0b70e",
+      "size": 1703,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/465e7abd57c1b516030b557c2790f4d2b0a0b70e"
+    },
+    {
+      "path": "internal/httpapi/testdata/upstream-stream-deepseek-v4-1-flash.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e903c25a8c820a0ab777da3325d8f8a4a037fb3d",
+      "size": 10523,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/e903c25a8c820a0ab777da3325d8f8a4a037fb3d"
+    },
+    {
+      "path": "internal/httpapi/throttle.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d7d493f48474e891722db7e298a04e6368d5e6a0",
+      "size": 5450,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/d7d493f48474e891722db7e298a04e6368d5e6a0"
+    },
+    {
+      "path": "internal/httpapi/throttle_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6fa50c76b1526b9f35d08eee6d22cf0c40ceb90b",
+      "size": 10022,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/6fa50c76b1526b9f35d08eee6d22cf0c40ceb90b"
+    },
+    {
+      "path": "internal/jsonx",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "98f35263a8b640a6f84cdbe63829939e18ab2460",
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/trees/98f35263a8b640a6f84cdbe63829939e18ab2460"
+    },
+    {
+      "path": "internal/jsonx/value.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7e178dfa8908f433f7cea1e0946d5d5569fb6e98",
+      "size": 343,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/7e178dfa8908f433f7cea1e0946d5d5569fb6e98"
+    },
+    {
+      "path": "internal/model",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "8e40c1e080984e9abc99018c4fd546b68f25995e",
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/trees/8e40c1e080984e9abc99018c4fd546b68f25995e"
+    },
+    {
+      "path": "internal/model/account.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3093f4249b758f90da13c7cc7690a279474fc08a",
+      "size": 640,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/3093f4249b758f90da13c7cc7690a279474fc08a"
+    },
+    {
+      "path": "internal/model/normalize.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cdec236222d2eb8866c34b2c25280f12a4627cdb",
+      "size": 8902,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/cdec236222d2eb8866c34b2c25280f12a4627cdb"
+    },
+    {
+      "path": "internal/model/normalize_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7b31d53f2d39591e4ddf4ef49911f87171ebe185",
+      "size": 5583,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/7b31d53f2d39591e4ddf4ef49911f87171ebe185"
+    },
+    {
+      "path": "internal/model/proxykey.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "589572b03eecbd2d6a3276016fa14809c7ab7882",
+      "size": 3038,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/589572b03eecbd2d6a3276016fa14809c7ab7882"
+    },
+    {
+      "path": "internal/model/proxykey_normalize.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9787bdfc41d44f5f18fdfbd3297406e510f06610",
+      "size": 1548,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/9787bdfc41d44f5f18fdfbd3297406e510f06610"
+    },
+    {
+      "path": "internal/model/proxykey_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0c2a52f398bf994e81ea7385c82fbe02b4ca5217",
+      "size": 1736,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/0c2a52f398bf994e81ea7385c82fbe02b4ca5217"
+    },
+    {
+      "path": "internal/model/types.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "946fb723e89c65abfa0a4c8ed57232139e8e55dc",
+      "size": 18838,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/946fb723e89c65abfa0a4c8ed57232139e8e55dc"
+    },
+    {
+      "path": "internal/model/types_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1914669d5662031b72db191fa19c91659d4d86ef",
+      "size": 922,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/1914669d5662031b72db191fa19c91659d4d86ef"
+    },
+    {
+      "path": "internal/responses",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "e2d6d7f014623ae4bc3ca7b36998111247a122f0",
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/trees/e2d6d7f014623ae4bc3ca7b36998111247a122f0"
+    },
+    {
+      "path": "internal/responses/bridge.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "68e324c7474cd3203771bfbb312408c641b0537b",
+      "size": 24753,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/68e324c7474cd3203771bfbb312408c641b0537b"
+    },
+    {
+      "path": "internal/responses/bridge_content.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0d5ddb54920d29f5982f52c6903a55fcbe70854e",
+      "size": 12769,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/0d5ddb54920d29f5982f52c6903a55fcbe70854e"
+    },
+    {
+      "path": "internal/responses/bridge_output.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "32809f9ec96b8a69b2912b427645a39f5e85e00b",
+      "size": 13259,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/32809f9ec96b8a69b2912b427645a39f5e85e00b"
+    },
+    {
+      "path": "internal/responses/bridge_reasoning.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0ef7ebbdb32b664602acb336b5956b45a7755453",
+      "size": 6358,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/0ef7ebbdb32b664602acb336b5956b45a7755453"
+    },
+    {
+      "path": "internal/responses/bridge_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2a2e66fd6a7f84f78883df5bfa3ea49c115d6dab",
+      "size": 83247,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/2a2e66fd6a7f84f78883df5bfa3ea49c115d6dab"
+    },
+    {
+      "path": "internal/responses/bridge_tools.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d67101089579fa93f3d04f54e374616e7e5dbd36",
+      "size": 17133,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/d67101089579fa93f3d04f54e374616e7e5dbd36"
+    },
+    {
+      "path": "internal/responses/compact.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ecff8af359b3fbe79e316d6ca6543f2e8f23ac31",
+      "size": 25088,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/ecff8af359b3fbe79e316d6ca6543f2e8f23ac31"
+    },
+    {
+      "path": "internal/responses/compact_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5a8dcd061b7fc92bc452895cf18e3e25927aec09",
+      "size": 2231,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/5a8dcd061b7fc92bc452895cf18e3e25927aec09"
+    },
+    {
+      "path": "internal/responses/compatibility_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3c321367484cb31041221d5d9f9553b4ad0c8200",
+      "size": 9216,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/3c321367484cb31041221d5d9f9553b4ad0c8200"
+    },
+    {
+      "path": "internal/responses/optional_tools_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2ceae55a69dacccbb0a957773829b84f6c9eab93",
+      "size": 1944,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/2ceae55a69dacccbb0a957773829b84f6c9eab93"
+    },
+    {
+      "path": "internal/responses/performance_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a203f1c3968f6fb3fa6ce50858978d2e706b55e0",
+      "size": 2708,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/a203f1c3968f6fb3fa6ce50858978d2e706b55e0"
+    },
+    {
+      "path": "internal/responses/protocol_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0ca7693b8fc98558e3b31ab175b5ca0384bb6497",
+      "size": 7734,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/0ca7693b8fc98558e3b31ab175b5ca0384bb6497"
+    },
+    {
+      "path": "internal/responses/shell_compat_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3479bf80554234477edffc4ca803422cc04b72fd",
+      "size": 9797,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/3479bf80554234477edffc4ca803422cc04b72fd"
+    },
+    {
+      "path": "internal/responses/stream.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e2caa23dfe91a00bdda4e19d8d30fb82cda2bec4",
+      "size": 32643,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/e2caa23dfe91a00bdda4e19d8d30fb82cda2bec4"
+    },
+    {
+      "path": "internal/responses/structured_output.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2ef8cf60262c3d95434bc9ab2e8bf749004f4059",
+      "size": 7616,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/2ef8cf60262c3d95434bc9ab2e8bf749004f4059"
+    },
+    {
+      "path": "internal/responses/structured_output_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "904bbfc9b7123ee645fd32cf2b64f3ddd329eae8",
+      "size": 12077,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/904bbfc9b7123ee645fd32cf2b64f3ddd329eae8"
+    },
+    {
+      "path": "internal/responses/structured_repair.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a41cd10b10164d7b9e32004a761b07467f535d49",
+      "size": 3347,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/a41cd10b10164d7b9e32004a761b07467f535d49"
+    },
+    {
+      "path": "internal/responses/structured_repair_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "19950662dad7ca5de09a7e14185ed3c5e029a2eb",
+      "size": 2873,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/19950662dad7ca5de09a7e14185ed3c5e029a2eb"
+    },
+    {
+      "path": "internal/responses/usage_legs_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8aafc93ea5152b338015292c1f8b20480abbc55f",
+      "size": 9423,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/8aafc93ea5152b338015292c1f8b20480abbc55f"
+    },
+    {
+      "path": "internal/responses/validate.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1e5cb04ef9731eec4d180802a3dbf57ea58da534",
+      "size": 5705,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/1e5cb04ef9731eec4d180802a3dbf57ea58da534"
+    },
+    {
+      "path": "internal/sse",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "cc78d2b7a66a6a5e9ee837acb7708b090db8dbbe",
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/trees/cc78d2b7a66a6a5e9ee837acb7708b090db8dbbe"
+    },
+    {
+      "path": "internal/sse/parser.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "11854136e7a004d1a9f6a3bb8b06908e38ef82b2",
+      "size": 1314,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/11854136e7a004d1a9f6a3bb8b06908e38ef82b2"
+    },
+    {
+      "path": "internal/sse/parser_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "72915ba5fce39f804455e0ad88914f006e06d5b1",
+      "size": 1921,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/72915ba5fce39f804455e0ad88914f006e06d5b1"
+    },
+    {
+      "path": "internal/store",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "688683752ef0193ad69664f70ce34f5c379b18da",
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/trees/688683752ef0193ad69664f70ce34f5c379b18da"
+    },
+    {
+      "path": "internal/store/effective.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "820d2e231a03db1a0f67f603fb95c7b24a13f754",
+      "size": 941,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/820d2e231a03db1a0f67f603fb95c7b24a13f754"
+    },
+    {
+      "path": "internal/store/health.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "120bd2a049bf0635b65df8ba017a9431c35fa926",
+      "size": 1200,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/120bd2a049bf0635b65df8ba017a9431c35fa926"
+    },
+    {
+      "path": "internal/store/health_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "89d86876b597088a97a8f45c00026400ce55ea38",
+      "size": 4750,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/89d86876b597088a97a8f45c00026400ce55ea38"
+    },
+    {
+      "path": "internal/store/history.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c83160619a78c6e6896edbd3e527cd5c7ca95daa",
+      "size": 650,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/c83160619a78c6e6896edbd3e527cd5c7ca95daa"
+    },
+    {
+      "path": "internal/store/history_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "702061e5f85ed3dd5244648c97ee1252d08f127c",
+      "size": 1755,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/702061e5f85ed3dd5244648c97ee1252d08f127c"
+    },
+    {
+      "path": "internal/store/journal.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "599b8c0cf2f430fa8b5cdc4e2d8b984f47427436",
+      "size": 10738,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/599b8c0cf2f430fa8b5cdc4e2d8b984f47427436"
+    },
+    {
+      "path": "internal/store/journal_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b00f3323a27912d7793845db7e82997da963a694",
+      "size": 11127,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/b00f3323a27912d7793845db7e82997da963a694"
+    },
+    {
+      "path": "internal/store/keyusage.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8d6dea8e139df774998c1b2c83184d38289dd9e2",
+      "size": 1118,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/8d6dea8e139df774998c1b2c83184d38289dd9e2"
+    },
+    {
+      "path": "internal/store/keyusage_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "971b212195989c66d9ac4b4b58ef05e9696a172f",
+      "size": 2151,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/971b212195989c66d9ac4b4b58ef05e9696a172f"
+    },
+    {
+      "path": "internal/store/lock_unix.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "bbcfe04fa0605e1e430947c55d71d4641c8712e3",
+      "size": 656,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/bbcfe04fa0605e1e430947c55d71d4641c8712e3"
+    },
+    {
+      "path": "internal/store/lock_windows.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e7daa2d33e94781c0ab00415f2160db301d28655",
+      "size": 678,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/e7daa2d33e94781c0ab00415f2160db301d28655"
+    },
+    {
+      "path": "internal/store/performance_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "23fb2e645bd2131d2bfafa7f67fc70ae76726016",
+      "size": 781,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/23fb2e645bd2131d2bfafa7f67fc70ae76726016"
+    },
+    {
+      "path": "internal/store/snapshots.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e19b8d44926bb6b3de58aea86e4745261dc1ac99",
+      "size": 5728,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/e19b8d44926bb6b3de58aea86e4745261dc1ac99"
+    },
+    {
+      "path": "internal/store/snapshots_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0da82eb09311b739646d69dfc7ce27955f3a98ed",
+      "size": 2397,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/0da82eb09311b739646d69dfc7ce27955f3a98ed"
+    },
+    {
+      "path": "internal/store/spend.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0eeac4a41b4a270d9df5bfd969ec99bdf5e09b83",
+      "size": 2420,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/0eeac4a41b4a270d9df5bfd969ec99bdf5e09b83"
+    },
+    {
+      "path": "internal/store/spend_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c564f0521c3a5f871301cf67130aba278be9de7e",
+      "size": 2545,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/c564f0521c3a5f871301cf67130aba278be9de7e"
+    },
+    {
+      "path": "internal/store/stats_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0db000606ee79ecf9b80610f203886a052f08c35",
+      "size": 4125,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/0db000606ee79ecf9b80610f203886a052f08c35"
+    },
+    {
+      "path": "internal/store/store.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "059726e7510c522eb0c10b9ae50db399287a5305",
+      "size": 9504,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/059726e7510c522eb0c10b9ae50db399287a5305"
+    },
+    {
+      "path": "internal/strx",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "f9506a0059a674e3099a5db936e2ec0f2bc2ad65",
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/trees/f9506a0059a674e3099a5db936e2ec0f2bc2ad65"
+    },
+    {
+      "path": "internal/strx/strings.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "043b7bf475f135d132d0300d42190c116ed3b7ff",
+      "size": 877,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/043b7bf475f135d132d0300d42190c116ed3b7ff"
+    },
+    {
+      "path": "internal/upstream",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "6b2a3e5ebdc191e16b7b44983a4a83af1d1fd3c6",
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/trees/6b2a3e5ebdc191e16b7b44983a4a83af1d1fd3c6"
+    },
+    {
+      "path": "internal/upstream/accounts.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "36c88d804a84827894422d044ed2b1bc0fc39541",
+      "size": 10375,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/36c88d804a84827894422d044ed2b1bc0fc39541"
+    },
+    {
+      "path": "internal/upstream/accounts_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "15af58ee0f260a96c0e703446b6cb7052c6ff60f",
+      "size": 7132,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/15af58ee0f260a96c0e703446b6cb7052c6ff60f"
+    },
+    {
+      "path": "internal/upstream/catalog_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "92ac164ffc07687bbff9897f06c1442c3edf2fc1",
+      "size": 13709,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/92ac164ffc07687bbff9897f06c1442c3edf2fc1"
+    },
+    {
+      "path": "internal/upstream/gateway_meta_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ab845bf85c5ffab14bb4886627a43af96bfec4b1",
+      "size": 5942,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/ab845bf85c5ffab14bb4886627a43af96bfec4b1"
+    },
+    {
+      "path": "internal/upstream/helpers.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ecac9473ee3efcfb9a252d677cd32930ccf5bae2",
+      "size": 25020,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/ecac9473ee3efcfb9a252d677cd32930ccf5bae2"
+    },
+    {
+      "path": "internal/upstream/idle.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ca89726396674dd7f5a273f37c73cf44d8ceb846",
+      "size": 6869,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/ca89726396674dd7f5a273f37c73cf44d8ceb846"
+    },
+    {
+      "path": "internal/upstream/idle_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5fef84f386759920d9fb375645b60a8973a57fea",
+      "size": 5287,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/5fef84f386759920d9fb375645b60a8973a57fea"
+    },
+    {
+      "path": "internal/upstream/persistence.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "eb409395f037f263d42d7f96a46e7f167e8cc64c",
+      "size": 492,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/eb409395f037f263d42d7f96a46e7f167e8cc64c"
+    },
+    {
+      "path": "internal/upstream/plan_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e960c8b333c1295554d150f889722c624fa48dfa",
+      "size": 1346,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/e960c8b333c1295554d150f889722c624fa48dfa"
+    },
+    {
+      "path": "internal/upstream/probe_pin_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6679b0c507758a3b07043a3031542c7efd143cd3",
+      "size": 5592,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/6679b0c507758a3b07043a3031542c7efd143cd3"
+    },
+    {
+      "path": "internal/upstream/provider_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "bfd51927f11c45a7d27d098c5a0c399d72ce3a70",
+      "size": 1807,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/bfd51927f11c45a7d27d098c5a0c399d72ce3a70"
+    },
+    {
+      "path": "internal/upstream/quota.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "acf9b941732fa017a906b2bda9323cedc9b5dec0",
+      "size": 14319,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/acf9b941732fa017a906b2bda9323cedc9b5dec0"
+    },
+    {
+      "path": "internal/upstream/quota_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9bd4a00fde1dcc56c2371dd338f015da7c5bdd07",
+      "size": 13924,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/9bd4a00fde1dcc56c2371dd338f015da7c5bdd07"
+    },
+    {
+      "path": "internal/upstream/responses_support_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c4317ae4f546f79c6dc4fa7e9f69773335d1f4b2",
+      "size": 3375,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/c4317ae4f546f79c6dc4fa7e9f69773335d1f4b2"
+    },
+    {
+      "path": "internal/upstream/service.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b640af322ad5e0a094d0a171b9fb869a30a73ef7",
+      "size": 37679,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/b640af322ad5e0a094d0a171b9fb869a30a73ef7"
+    },
+    {
+      "path": "internal/upstream/stick_ttl_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8e00d93c7563dfab8a20bc0b7c35fbb6e492d584",
+      "size": 1679,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/8e00d93c7563dfab8a20bc0b7c35fbb6e492d584"
+    },
+    {
+      "path": "internal/upstream/sticky.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e03c2f9de777336748f213b1d7aafa3134c6d40b",
+      "size": 6083,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/e03c2f9de777336748f213b1d7aafa3134c6d40b"
+    },
+    {
+      "path": "internal/upstream/sticky_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "98880fa857c71a331aba36a6222ada61b9c7ef72",
+      "size": 5606,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/98880fa857c71a331aba36a6222ada61b9c7ef72"
+    },
+    {
+      "path": "internal/upstream/validate_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "67641b3401d254ca521c7793231b3718a0baffb3",
+      "size": 4067,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/67641b3401d254ca521c7793231b3718a0baffb3"
+    },
+    {
+      "path": "internal/webassets",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "bdcdaa051456701dba765b23a368621c6785dc32",
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/trees/bdcdaa051456701dba765b23a368621c6785dc32"
+    },
+    {
+      "path": "internal/webassets/dist",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "ea3c0cce8aad77c4c9d0acd8ac73bc4103479c08",
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/trees/ea3c0cce8aad77c4c9d0acd8ac73bc4103479c08"
+    },
+    {
+      "path": "internal/webassets/dist/assets",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "e42bc70e922485871166e9f477e3b87558a81d85",
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/trees/e42bc70e922485871166e9f477e3b87558a81d85"
+    },
+    {
+      "path": "internal/webassets/dist/assets/index-04YEH0rR.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e6fce776e01f09ed9d6cfb1b8641efd1a919671d",
+      "size": 590912,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/e6fce776e01f09ed9d6cfb1b8641efd1a919671d"
+    },
+    {
+      "path": "internal/webassets/dist/assets/index-D6H1C0ik.css",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1dc7539e0e4a04009dc3fc8f8c67aa6ee1398739",
+      "size": 81630,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/1dc7539e0e4a04009dc3fc8f8c67aa6ee1398739"
+    },
+    {
+      "path": "internal/webassets/dist/favicon.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4f1a5ee7663bfda40f91614325e43c827845b689",
+      "size": 768,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/4f1a5ee7663bfda40f91614325e43c827845b689"
+    },
+    {
+      "path": "internal/webassets/dist/index.html",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f6024562271e717099b015dc5bda3f17385bc1fa",
+      "size": 4327,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/f6024562271e717099b015dc5bda3f17385bc1fa"
+    },
+    {
+      "path": "internal/webassets/embed.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b682b2ddc63b12ad6e72e083d0617192419df340",
+      "size": 193,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/b682b2ddc63b12ad6e72e083d0617192419df340"
+    },
+    {
+      "path": "web",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "fc493ecb5eedb9dc749696196e5430c4788ad7a7",
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/trees/fc493ecb5eedb9dc749696196e5430c4788ad7a7"
+    },
+    {
+      "path": "web/.gitignore",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a547bf36d8d11a4f89c59c144f24795749086dd1",
+      "size": 253,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/a547bf36d8d11a4f89c59c144f24795749086dd1"
+    },
+    {
+      "path": "web/.oxlintrc.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6fa991dad24b57eb19c9cefba8ea12fd1870ed07",
+      "size": 245,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/6fa991dad24b57eb19c9cefba8ea12fd1870ed07"
+    },
+    {
+      "path": "web/README.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d536a8ec032253967970b24fc7b990841dca0daf",
+      "size": 413,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/d536a8ec032253967970b24fc7b990841dca0daf"
+    },
+    {
+      "path": "web/components.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "15addee81fadab3e2f43e23425168d57f800bd8f",
+      "size": 515,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/15addee81fadab3e2f43e23425168d57f800bd8f"
+    },
+    {
+      "path": "web/e2e",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "d4db1886c70894450ead539951e3dbfc02fc2143",
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/trees/d4db1886c70894450ead539951e3dbfc02fc2143"
+    },
+    {
+      "path": "web/e2e/console.spec.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "04482bdb28e192cb2cabc26cfc8b26b3476b2fc0",
+      "size": 5511,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/04482bdb28e192cb2cabc26cfc8b26b3476b2fc0"
+    },
+    {
+      "path": "web/e2e/history.spec.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7e1fdc71dd4af818069a6ceba8b56210a2dbf490",
+      "size": 3656,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/7e1fdc71dd4af818069a6ceba8b56210a2dbf490"
+    },
+    {
+      "path": "web/e2e/mobile.spec.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d1e9502bc441f3c86001c8f62a9ba1e219223f7d",
+      "size": 1700,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/d1e9502bc441f3c86001c8f62a9ba1e219223f7d"
+    },
+    {
+      "path": "web/index.html",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f41668beed9618591680cb16ffb9cb9132d903cd",
+      "size": 5086,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/f41668beed9618591680cb16ffb9cb9132d903cd"
+    },
+    {
+      "path": "web/package-lock.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3ea115b5cf18cf20fe0d2b3bb6f1130207124815",
+      "size": 242463,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/3ea115b5cf18cf20fe0d2b3bb6f1130207124815"
+    },
+    {
+      "path": "web/package.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "96be58d895280046f2f72d89622fd7747e2b8ae3",
+      "size": 1043,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/96be58d895280046f2f72d89622fd7747e2b8ae3"
+    },
+    {
+      "path": "web/playwright.config.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ab361045e8eb20f1739b4caa215cefeb2ad3008b",
+      "size": 1682,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/ab361045e8eb20f1739b4caa215cefeb2ad3008b"
+    },
+    {
+      "path": "web/public",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "a7234d97d7eeba4ad9fdb237b17e4b490dc24a1c",
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/trees/a7234d97d7eeba4ad9fdb237b17e4b490dc24a1c"
+    },
+    {
+      "path": "web/public/favicon.svg",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4f1a5ee7663bfda40f91614325e43c827845b689",
+      "size": 768,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/4f1a5ee7663bfda40f91614325e43c827845b689"
+    },
+    {
+      "path": "web/src",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "6501874215d48e68b795d34610646c2e32c7f1b4",
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/trees/6501874215d48e68b795d34610646c2e32c7f1b4"
+    },
+    {
+      "path": "web/src/App.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8ac5837dd6a44602da9338b133998954cdbe9d83",
+      "size": 22465,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/8ac5837dd6a44602da9338b133998954cdbe9d83"
+    },
+    {
+      "path": "web/src/components",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "1a10386f332facf7fdfbf986535d7684837c44bc",
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/trees/1a10386f332facf7fdfbf986535d7684837c44bc"
+    },
+    {
+      "path": "web/src/components/accounts-panel.test.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fe40df1df5714ce68dc2aa9afce3efd573851e29",
+      "size": 10599,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/fe40df1df5714ce68dc2aa9afce3efd573851e29"
+    },
+    {
+      "path": "web/src/components/accounts-panel.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "48e0868715df824a2768df9c8175b478e3e0c2bb",
+      "size": 23473,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/48e0868715df824a2768df9c8175b478e3e0c2bb"
+    },
+    {
+      "path": "web/src/components/brand-mark.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "165bbfbaab9791854d3a4f5d0b16b437aa3981a1",
+      "size": 1223,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/165bbfbaab9791854d3a4f5d0b16b437aa3981a1"
+    },
+    {
+      "path": "web/src/components/confirm-dialog.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0848e48f6ef4a37f849f4f68e430b904c39af27c",
+      "size": 1822,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/0848e48f6ef4a37f849f4f68e430b904c39af27c"
+    },
+    {
+      "path": "web/src/components/console-kit.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c1f8ff69daddbbc752f5f4a55233c57e54ec4bef",
+      "size": 4990,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/c1f8ff69daddbbc752f5f4a55233c57e54ec4bef"
+    },
+    {
+      "path": "web/src/components/history-panel.test.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e4254581315cbe61a255a06a0b4203ded93cf7d7",
+      "size": 7627,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/e4254581315cbe61a255a06a0b4203ded93cf7d7"
+    },
+    {
+      "path": "web/src/components/history-panel.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "37636d98f140fc0f117e74c3f81bcf83b2a14297",
+      "size": 27095,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/37636d98f140fc0f117e74c3f81bcf83b2a14297"
+    },
+    {
+      "path": "web/src/components/keys-panel.test.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5c1210c36e2a6d2fd67059078dc0bb6f6d39f5cc",
+      "size": 4273,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/5c1210c36e2a6d2fd67059078dc0bb6f6d39f5cc"
+    },
+    {
+      "path": "web/src/components/keys-panel.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2029d135a3b52fa8fe9cb098b7525857e96f3c69",
+      "size": 21126,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/2029d135a3b52fa8fe9cb098b7525857e96f3c69"
+    },
+    {
+      "path": "web/src/components/login-dialog.test.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6a4284cc49cae559de76bfcdf58aeec954e89bba",
+      "size": 1787,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/6a4284cc49cae559de76bfcdf58aeec954e89bba"
+    },
+    {
+      "path": "web/src/components/login-dialog.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7871b91db5f91907900f99cef57b85bebe4594cb",
+      "size": 3601,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/7871b91db5f91907900f99cef57b85bebe4594cb"
+    },
+    {
+      "path": "web/src/components/metric-card.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7ba5c773fda7b58d49fdeca4d68d07a802fbf011",
+      "size": 916,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/7ba5c773fda7b58d49fdeca4d68d07a802fbf011"
+    },
+    {
+      "path": "web/src/components/model-row.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "69fc3651a6e54965aa6890c27f61adfec85bf94e",
+      "size": 23600,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/69fc3651a6e54965aa6890c27f61adfec85bf94e"
+    },
+    {
+      "path": "web/src/components/models-panel.test.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b8383b4a9edebd9d26e961b1c4503383a195f8cf",
+      "size": 2936,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/b8383b4a9edebd9d26e961b1c4503383a195f8cf"
+    },
+    {
+      "path": "web/src/components/models-panel.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2b6081d340dc11926216a97486aa828ddc3810ab",
+      "size": 8631,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/2b6081d340dc11926216a97486aa828ddc3810ab"
+    },
+    {
+      "path": "web/src/components/provider-name.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a29b12a8bc7479271d9bda4871c09276a4a4d467",
+      "size": 836,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/a29b12a8bc7479271d9bda4871c09276a4a4d467"
+    },
+    {
+      "path": "web/src/components/security-panel.test.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fc4ac196108b9ce66e2baa24a3a5e824339f5910",
+      "size": 1993,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/fc4ac196108b9ce66e2baa24a3a5e824339f5910"
+    },
+    {
+      "path": "web/src/components/security-panel.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "97505cef481736ab9c1b04764a31fa217f87f5e4",
+      "size": 10854,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/97505cef481736ab9c1b04764a31fa217f87f5e4"
+    },
+    {
+      "path": "web/src/components/status-dot.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a5abea42b07bc255b74a4302e44bd6d05034b65d",
+      "size": 3085,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/a5abea42b07bc255b74a4302e44bd6d05034b65d"
+    },
+    {
+      "path": "web/src/components/storage-alert.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "86ee8d904cd33d10228f9b8b49c96972f5c1db51",
+      "size": 896,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/86ee8d904cd33d10228f9b8b49c96972f5c1db51"
+    },
+    {
+      "path": "web/src/components/test-bench.test.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "75eb7b5ee87b76462baa17af113a68fcff1dca16",
+      "size": 998,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/75eb7b5ee87b76462baa17af113a68fcff1dca16"
+    },
+    {
+      "path": "web/src/components/test-bench.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2791cae1d77d5065b47a2a316ebd767aba901576",
+      "size": 9831,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/2791cae1d77d5065b47a2a316ebd767aba901576"
+    },
+    {
+      "path": "web/src/components/theme-toggle.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "326594ced0b64fdf59c66f8a5208467d58461249",
+      "size": 3090,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/326594ced0b64fdf59c66f8a5208467d58461249"
+    },
+    {
+      "path": "web/src/components/trace-list.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f9342304f4a8d8424058cd71d22a5916ff41b4b6",
+      "size": 1765,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/f9342304f4a8d8424058cd71d22a5916ff41b4b6"
+    },
+    {
+      "path": "web/src/components/ui",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "37b5c639ef9afbae78ce34a54a015a840e41e3a2",
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/trees/37b5c639ef9afbae78ce34a54a015a840e41e3a2"
+    },
+    {
+      "path": "web/src/components/ui/alert.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "25ef1716cc79223c0ef25e0bf6b94eac5201fafc",
+      "size": 2226,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/25ef1716cc79223c0ef25e0bf6b94eac5201fafc"
+    },
+    {
+      "path": "web/src/components/ui/badge.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "113efa8f02e8955af5555829355d623a0e23eb79",
+      "size": 1897,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/113efa8f02e8955af5555829355d623a0e23eb79"
+    },
+    {
+      "path": "web/src/components/ui/button.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "322e93234c3691da1884b5645699b6c539cbcf67",
+      "size": 3216,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/322e93234c3691da1884b5645699b6c539cbcf67"
+    },
+    {
+      "path": "web/src/components/ui/card.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e0a658614e0dc3fc7341183c62ab19103a9b2ed9",
+      "size": 2973,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/e0a658614e0dc3fc7341183c62ab19103a9b2ed9"
+    },
+    {
+      "path": "web/src/components/ui/checkbox.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d2c1b2f8397ba40fedec7ac708d781e667c63398",
+      "size": 1515,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/d2c1b2f8397ba40fedec7ac708d781e667c63398"
+    },
+    {
+      "path": "web/src/components/ui/collapsible.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4b242f71d4f7977093e6ab0e7340cd33c8e54e72",
+      "size": 644,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/4b242f71d4f7977093e6ab0e7340cd33c8e54e72"
+    },
+    {
+      "path": "web/src/components/ui/dialog.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5cadf3f1f1822ef390f205c5e8ed587988bbf27b",
+      "size": 4066,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/5cadf3f1f1822ef390f205c5e8ed587988bbf27b"
+    },
+    {
+      "path": "web/src/components/ui/input.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7c4ab5ab5ed4872687e2c7e41eac38d50c9e7bf5",
+      "size": 1030,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/7c4ab5ab5ed4872687e2c7e41eac38d50c9e7bf5"
+    },
+    {
+      "path": "web/src/components/ui/label.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8b230f5bdfbd2484f74a5818003a54f0aa574774",
+      "size": 494,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/8b230f5bdfbd2484f74a5818003a54f0aa574774"
+    },
+    {
+      "path": "web/src/components/ui/scroll-area.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "964e02cefb9b8e5ec4e44233052a3fe1b6af4fa8",
+      "size": 1569,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/964e02cefb9b8e5ec4e44233052a3fe1b6af4fa8"
+    },
+    {
+      "path": "web/src/components/ui/select.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d8acf7908e2bc11c941cbd0a07fe980e16e89d66",
+      "size": 6660,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/d8acf7908e2bc11c941cbd0a07fe980e16e89d66"
+    },
+    {
+      "path": "web/src/components/ui/separator.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d69c13426761105ab42e5a6bd364dc54bd70f78c",
+      "size": 535,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/d69c13426761105ab42e5a6bd364dc54bd70f78c"
+    },
+    {
+      "path": "web/src/components/ui/sheet.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "17027140581c7931c95b067c8cce9509c881a6a0",
+      "size": 4410,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/17027140581c7931c95b067c8cce9509c881a6a0"
+    },
+    {
+      "path": "web/src/components/ui/skeleton.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b7f61b3aa51edcfcce89bb38fb161fc251cf983c",
+      "size": 266,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/b7f61b3aa51edcfcce89bb38fb161fc251cf983c"
+    },
+    {
+      "path": "web/src/components/ui/sonner.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9280ee52ffedac56107a4880828f61fac897c7f8",
+      "size": 1226,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/9280ee52ffedac56107a4880828f61fac897c7f8"
+    },
+    {
+      "path": "web/src/components/ui/switch.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cf814744eab468c7002b3d3c0e8b46a1f95e9a70",
+      "size": 1801,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/cf814744eab468c7002b3d3c0e8b46a1f95e9a70"
+    },
+    {
+      "path": "web/src/components/ui/table.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4e62d23f3052ebc3beeab448a6711d33ea07878d",
+      "size": 2423,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/4e62d23f3052ebc3beeab448a6711d33ea07878d"
+    },
+    {
+      "path": "web/src/components/ui/tabs.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0db5761bff1d81bd9d26efdb860bf108ccdb2aed",
+      "size": 3469,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/0db5761bff1d81bd9d26efdb860bf108ccdb2aed"
+    },
+    {
+      "path": "web/src/components/ui/tooltip.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3a565206e2aaeab95bce6b0d402e82800a5c500b",
+      "size": 2822,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/3a565206e2aaeab95bce6b0d402e82800a5c500b"
+    },
+    {
+      "path": "web/src/index.css",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "81812887fe3f85c53a0642ac4a2f89f3f5b1f949",
+      "size": 5938,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/81812887fe3f85c53a0642ac4a2f89f3f5b1f949"
+    },
+    {
+      "path": "web/src/lib",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "edb719afb44bc316b9cb7f174abbd96e26e6ee27",
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/trees/edb719afb44bc316b9cb7f174abbd96e26e6ee27"
+    },
+    {
+      "path": "web/src/lib/admin-key.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6f0d323c62d3210b5a356b6aab470dada827a9d3",
+      "size": 1187,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/6f0d323c62d3210b5a356b6aab470dada827a9d3"
+    },
+    {
+      "path": "web/src/lib/api.test.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4995e6b8f97a8b54c409b697923762d689b6c61f",
+      "size": 1517,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/4995e6b8f97a8b54c409b697923762d689b6c61f"
+    },
+    {
+      "path": "web/src/lib/api.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "38b8d644d21c1f5a38b0d7587e15edf42a7559c5",
+      "size": 1791,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/38b8d644d21c1f5a38b0d7587e15edf42a7559c5"
+    },
+    {
+      "path": "web/src/lib/console-snapshot.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d193ec6dc50c5e5124e44d930c0ec4b15d220317",
+      "size": 2381,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/d193ec6dc50c5e5124e44d930c0ec4b15d220317"
+    },
+    {
+      "path": "web/src/lib/console-styles.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f1b0d35c1d5115d7e4dc8259e51419ae60270ced",
+      "size": 1238,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/f1b0d35c1d5115d7e4dc8259e51419ae60270ced"
+    },
+    {
+      "path": "web/src/lib/format.test.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cbc2f547b409aea34ea5413a7e018b6ee2d00fed",
+      "size": 3960,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/cbc2f547b409aea34ea5413a7e018b6ee2d00fed"
+    },
+    {
+      "path": "web/src/lib/format.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c98347c619cce998ec9cfa112fb2af34a8cd0b9e",
+      "size": 7350,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/c98347c619cce998ec9cfa112fb2af34a8cd0b9e"
+    },
+    {
+      "path": "web/src/lib/history-filter.test.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fc5a5e1a14f7fb76cc1508e123fccde63b28bfab",
+      "size": 1532,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/fc5a5e1a14f7fb76cc1508e123fccde63b28bfab"
+    },
+    {
+      "path": "web/src/lib/history-filter.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a6f6f3090aeb4d3d270bdf81c37b32087432b94c",
+      "size": 992,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/a6f6f3090aeb4d3d270bdf81c37b32087432b94c"
+    },
+    {
+      "path": "web/src/lib/probe-batch.test.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cb010cb58da75e0bd9a154a49a39bd8a103a37ba",
+      "size": 1789,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/cb010cb58da75e0bd9a154a49a39bd8a103a37ba"
+    },
+    {
+      "path": "web/src/lib/probe-batch.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c271a26e7053662c4ea6298a04c8eafd568a815c",
+      "size": 1363,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/c271a26e7053662c4ea6298a04c8eafd568a815c"
+    },
+    {
+      "path": "web/src/lib/root-snapshot.test.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1b5d5ba98c976e19c646105a2d57ee6d37d230c9",
+      "size": 1065,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/1b5d5ba98c976e19c646105a2d57ee6d37d230c9"
+    },
+    {
+      "path": "web/src/lib/root-snapshot.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f9fb18b141dc8390e2d50ac45edb2770afc13eae",
+      "size": 1010,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/f9fb18b141dc8390e2d50ac45edb2770afc13eae"
+    },
+    {
+      "path": "web/src/lib/upstream-order.test.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9fba9894df3e0b296db23c9e54ab2f308e5fe5ac",
+      "size": 2027,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/9fba9894df3e0b296db23c9e54ab2f308e5fe5ac"
+    },
+    {
+      "path": "web/src/lib/upstream-order.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b33037d3b34e4e1c1167d9b1a8400c4bb6ed62b8",
+      "size": 1375,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/b33037d3b34e4e1c1167d9b1a8400c4bb6ed62b8"
+    },
+    {
+      "path": "web/src/lib/use-account-quota.test.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4af295498ddd6d5ef5dfa4048517f58ffa2af780",
+      "size": 3624,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/4af295498ddd6d5ef5dfa4048517f58ffa2af780"
+    },
+    {
+      "path": "web/src/lib/use-account-quota.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "03857e3ed401bea8bd254bec8d5f501acb02de0e",
+      "size": 3844,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/03857e3ed401bea8bd254bec8d5f501acb02de0e"
+    },
+    {
+      "path": "web/src/lib/use-draft.test.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "37ca91a78600c5bdf891782d45b30ba89e67dd66",
+      "size": 936,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/37ca91a78600c5bdf891782d45b30ba89e67dd66"
+    },
+    {
+      "path": "web/src/lib/use-draft.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9f49b523085b76645208568dfe0d58d761dc3c5f",
+      "size": 787,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/9f49b523085b76645208568dfe0d58d761dc3c5f"
+    },
+    {
+      "path": "web/src/lib/use-history.test.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c449a256d34e8c2fc0473f3073bd2cc6bf56416f",
+      "size": 5342,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/c449a256d34e8c2fc0473f3073bd2cc6bf56416f"
+    },
+    {
+      "path": "web/src/lib/use-history.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b11c976ff7b514795dc18099e2e6ab1de52e95f7",
+      "size": 5637,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/b11c976ff7b514795dc18099e2e6ab1de52e95f7"
+    },
+    {
+      "path": "web/src/lib/use-media-query.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e972696ab3732f318734cc2fbd4e8fd836172a0c",
+      "size": 957,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/e972696ab3732f318734cc2fbd4e8fd836172a0c"
+    },
+    {
+      "path": "web/src/lib/utils.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f815ded4d7865413255682a8b1f8f95beb620d0a",
+      "size": 24,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/f815ded4d7865413255682a8b1f8f95beb620d0a"
+    },
+    {
+      "path": "web/src/main.tsx",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b74654ec7bea1694b75e9b16fc1cd9f4113d5515",
+      "size": 1877,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/b74654ec7bea1694b75e9b16fc1cd9f4113d5515"
+    },
+    {
+      "path": "web/src/types.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f5fa26f6afd745df7d71b62ebbd99ab10dea7735",
+      "size": 7343,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/f5fa26f6afd745df7d71b62ebbd99ab10dea7735"
+    },
+    {
+      "path": "web/tsconfig.app.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "154719a663de603aee5f583bd1d1ce78df94edfb",
+      "size": 702,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/154719a663de603aee5f583bd1d1ce78df94edfb"
+    },
+    {
+      "path": "web/tsconfig.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "703e7ea2134db54c32ffd5a7b167a7003cb8fa74",
+      "size": 193,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/703e7ea2134db54c32ffd5a7b167a7003cb8fa74"
+    },
+    {
+      "path": "web/tsconfig.node.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8455dcbc2c947322adef8783a42741878edaea9c",
+      "size": 558,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/8455dcbc2c947322adef8783a42741878edaea9c"
+    },
+    {
+      "path": "web/vite.config.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fc18cd4ec4b6187eb74fbdf32e2576f0190fe8d9",
+      "size": 537,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/fc18cd4ec4b6187eb74fbdf32e2576f0190fe8d9"
+    },
+    {
+      "path": "web/vitest.config.ts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "77e11d679a50436993359badb7a01ff443b261ff",
+      "size": 577,
+      "url": "https://api.github.com/repos/Hxjcc/cline-pass-switcher-go/git/blobs/77e11d679a50436993359badb7a01ff443b261ff"
+    }
+  ],
+  "truncated": false
+}

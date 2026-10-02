@@ -1,0 +1,361 @@
+name: build
+
+# 构建与发布。触发方式：
+#   - sync.yml 解析到上游变化后显式 dispatch（GITHUB_TOKEN 的 push 不会触发其它 workflow）
+#   - manual-build.yml 转发手动参数
+#   - 本文件自身的 workflow_dispatch
+#
+# 权限模型（评审 3.2）：跑上游代码的 build Job 只有 contents:read；
+# 只有 publish-* / record Job 持有 packages:write 和 contents:write，且它们不执行上游代码。
+
+on:
+  workflow_dispatch:
+    inputs:
+      project:
+        description: '项目名，或 all'
+        type: string
+        default: all
+      pins:
+        description: 'JSON: {name: {sha, version}}，由 sync 传入以固定本次构建的 SHA'
+        type: string
+        default: ''
+      force:
+        description: '忽略 SHA 未变化，强制重建'
+        type: boolean
+        default: false
+      publish:
+        description: '验证通过后是否推送 GHCR 镜像 / 发布 Release'
+        type: boolean
+        default: true
+      targets:
+        description: '覆盖目标架构（留空用配置），例：linux/amd64'
+        type: string
+        default: ''
+      build_type:
+        description: '覆盖构建方式（留空用配置）：native|dockerfile|custom'
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: false   # 绝不打断正在进行的发布
+
+jobs:
+  # ---------------------------------------------------------------- 计划
+  plan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      has_work: ${{ steps.plan.outputs.has_work }}
+      matrix: ${{ steps.plan.outputs.matrix }}
+      projects: ${{ steps.plan.outputs.projects }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 校验 upstream.json
+        run: python3 scripts/ub.py validate
+
+      - name: 解析上游 ref，决定本次构建范围
+        id: plan
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PROJECT: ${{ inputs.project }}
+          PINS: ${{ inputs.pins }}
+          FORCE: ${{ inputs.force }}
+        run: |
+          set -euo pipefail
+          args=(--project "$PROJECT" --github-output)
+          [ "$FORCE" = "true" ] && args+=(--force)
+          [ -n "$PINS" ] && args+=(--pins "$PINS")
+          python3 scripts/ub.py plan "${args[@]}"
+
+      - name: 写入运行摘要
+        if: always()
+        env:
+          HAS_WORK: ${{ steps.plan.outputs.has_work }}
+          PROJECTS: ${{ steps.plan.outputs.projects }}
+        run: |
+          {
+            echo "## 本次构建范围"
+            echo ""
+            if [ "$HAS_WORK" = "true" ]; then
+              echo "将构建：\`$PROJECTS\`"
+            else
+              echo "上游无变化（或命中节流），无需构建。"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ---------------------------------------------------------------- 构建
+  # 这一层会执行上游代码（Dockerfile RUN / go test / npm ci / custom 脚本），
+  # 因此权限只有 contents:read —— 拿不到 packages:write，也读不到 registry 凭据。
+  build:
+    needs: plan
+    if: needs.plan.outputs.has_work == 'true'
+    strategy:
+      fail-fast: false          # 单项目失败不阻止其它项目（计划 9.2）
+      max-parallel: 3           # 并发上限（计划 10.3）
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 生成项目构建环境变量
+        env:
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+          python3 scripts/ub.py env \
+            --project "${{ matrix.name }}" \
+            --sha "${{ matrix.sha }}" \
+            --version "${{ matrix.version }}" \
+            --owner "$OWNER" \
+            --format github-env >> "$GITHUB_ENV"
+          {
+            echo "UB_REPO_ROOT=$GITHUB_WORKSPACE"
+            echo "UB_ENTRY=${{ matrix.entry }}"
+            echo "UB_ENTRY_TARGETS=${{ matrix.targets }}"
+            echo "UB_ENTRY_DOCKER_TARGETS=${{ matrix.docker_targets }}"
+            echo "UB_NATIVE_PER_ARCH=${{ matrix.native_per_arch }}"
+            echo "UB_OUT=$RUNNER_TEMP/ub/out-${{ matrix.entry }}"
+            echo "UB_CACHE=true"
+          } >> "$GITHUB_ENV"
+
+      # 手动覆盖（计划 9.3：覆盖必须显式记录，不能静默改变正式配置）
+      - name: 应用手动覆盖
+        env:
+          TARGETS: ${{ inputs.targets }}
+          BUILD_TYPE: ${{ inputs.build_type }}
+        run: |
+          set -euo pipefail
+          if [ -n "$TARGETS" ]; then
+            echo "::warning::手动覆盖目标架构：$TARGETS（覆盖了 upstream.json 的配置）"
+            echo "UB_ENTRY_TARGETS=$TARGETS" >> "$GITHUB_ENV"
+            echo "UB_ENTRY_DOCKER_TARGETS=$(printf '%s' "$TARGETS" | tr ',' ' ')" >> "$GITHUB_ENV"
+          fi
+          if [ -n "$BUILD_TYPE" ]; then
+            echo "::warning::手动覆盖构建方式：$BUILD_TYPE（覆盖了 upstream.json 的配置）"
+            echo "UB_METHOD=$BUILD_TYPE" >> "$GITHUB_ENV"
+          fi
+
+      # 工具链：注意本设计源码不落库，checkout 时仓库里没有 go.sum / package-lock.json，
+      # 所以不能用 setup-go/setup-node 的 cache:true（找不到锁文件会直接失败）。
+      # 正确顺序：先取源码 -> 算 lockfile 哈希 -> actions/cache -> 构建。
+      - name: 安装 Go
+        if: env.UB_LANGUAGE == 'go'
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.UB_GO_VERSION }}
+          cache: false
+
+      - name: 安装 Node
+        if: env.UB_NEEDS_NODE == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.UB_NODE_VERSION }}
+          cache: false
+
+      - name: 安装 Python
+        if: env.UB_NEEDS_PYTHON == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.UB_PYTHON_VERSION }}
+          cache: false
+
+      - name: 预取源码（用于计算依赖锁文件哈希）
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          export UB_FETCH_ONLY=true
+          bash scripts/prepare.sh
+
+      - name: 计算依赖锁文件哈希
+        id: lock
+        run: |
+          set -euo pipefail
+          echo "hash=$(python3 scripts/ub.py lockhash --project "$UB_NAME" --src "$UB_SRC")" >> "$GITHUB_OUTPUT"
+
+      - name: 恢复依赖缓存
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+            ~/.npm
+            ~/.cache/pip
+          key: deps-${{ runner.os }}-${{ matrix.entry }}-${{ steps.lock.outputs.hash }}
+          restore-keys: |
+            deps-${{ runner.os }}-${{ matrix.entry }}-
+            deps-${{ runner.os }}-
+
+      - name: 设置 QEMU（镜像走 QEMU 多架构时才需要）
+        if: matrix.needs_qemu
+        uses: docker/setup-qemu-action@v3
+
+      - name: 设置 Buildx
+        if: env.UB_DOCKER_ENABLED == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: 构建与验证
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash scripts/run-project.sh
+
+      - name: 上传构建产物
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.entry }}
+          path: ${{ env.UB_OUT }}
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: 构建摘要
+        if: always()
+        run: bash scripts/summarize.sh >> "$GITHUB_STEP_SUMMARY"
+
+  # ---------------------------------------------------------------- 发布镜像
+  publish-image:
+    needs: [plan, build]
+    if: ${{ always() && needs.plan.outputs.has_work == 'true' && inputs.publish }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: 安装 skopeo
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends skopeo
+
+      - name: 推送镜像并晋升标签
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          UB_ARTIFACTS: ${{ github.workspace }}/artifacts
+          UB_OUT: ${{ runner.temp }}/publish
+        run: |
+          set -euo pipefail
+          mkdir -p "$UB_OUT"
+          bash scripts/publish-all.sh image
+
+      - name: 上传发布元数据
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: published
+          path: ${{ runner.temp }}/publish
+          if-no-files-found: warn
+          retention-days: 14
+
+  # ---------------------------------------------------------------- 发布 Release
+  publish-release:
+    needs: [plan, build]
+    if: ${{ always() && needs.plan.outputs.has_work == 'true' && inputs.publish }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write          # 只有这一层能写 Release
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: 发布 GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          UB_ARTIFACTS: ${{ github.workspace }}/artifacts
+          UB_OUT: ${{ runner.temp }}/release
+        run: |
+          set -euo pipefail
+          mkdir -p "$UB_OUT"
+          bash scripts/publish-all.sh release
+
+      - name: 上传发布元数据
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: released
+          path: ${{ runner.temp }}/release
+          if-no-files-found: warn
+          retention-days: 14
+
+  # ---------------------------------------------------------------- 记录
+  # 本 Job 不执行上游代码，只读产物 JSON，因此可以持有 contents:write 提交状态。
+  record:
+    needs: [plan, build, publish-image, publish-release]
+    if: ${{ always() && needs.plan.outputs.has_work == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: 记录状态并生成报告
+        id: record
+        env:
+          UB_ARTIFACTS: ${{ github.workspace }}/artifacts
+          UB_RUN_ID: ${{ github.run_id }}
+          UB_REPO_ROOT: ${{ github.workspace }}
+        continue-on-error: true
+        run: bash scripts/record-all.sh
+
+      - name: 提交同步状态
+        run: |
+          set -euo pipefail
+          if [ -n "$(git status --porcelain reports/upstream-state.json)" ]; then
+            git config user.name  "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add reports/upstream-state.json
+            git commit -m "chore(state): 更新构建状态 [skip ci]"
+            git push
+          else
+            echo "状态无变化，无需提交"
+          fi
+
+      - name: 上传构建报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-report
+          path: |
+            reports/build-report.json
+            reports/run-results
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: 如实反映失败
+        if: always()
+        env:
+          RECORD_OUTCOME: ${{ steps.record.outcome }}
+          BUILD_RESULT: ${{ needs.build.result }}
+        run: |
+          set -euo pipefail
+          {
+            echo "## 结果"
+            echo ""
+            echo "- build Job: $BUILD_RESULT"
+            echo "- 记录 Job: $RECORD_OUTCOME"
+          } >> "$GITHUB_STEP_SUMMARY"
+          # 不把部分失败伪装成全部成功（计划 9.2）
+          if [ "$BUILD_RESULT" != "success" ] || [ "$RECORD_OUTCOME" != "success" ]; then
+            echo "::error::本次运行存在失败的项目，见构建报告 build-report"
+            exit 1
+          fi

@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+# 公共函数。所有构建脚本都以 `source lib.sh` 开头。
+# 约定：本文件只提供工具函数，不产生副作用。
+
+if [ -z "${UB_LIB_LOADED:-}" ]; then
+  UB_LIB_LOADED=1
+
+  log()   { printf '\033[1;34m[%s]\033[0m %s\n' "$(date -u +%H:%M:%S)" "$*"; }
+  warn()  { printf '\033[1;33mWARN\033[0m %s\n' "$*" >&2; }
+  die()   { printf '\033[1;31mERROR\033[0m %s\n' "$*" >&2; exit 1; }
+  group() { printf '::group::%s\n' "$*"; }
+  group_end() { printf '::endgroup::\n'; }
+
+  need() { command -v "$1" >/dev/null 2>&1 || die "缺少命令: $1"; }
+  is_true() { [ "${1:-}" = "true" ]; }
+
+  # 用 python 解析 JSON 片段，避免依赖 jq
+  json_get() { python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get(sys.argv[1],""))' "$1"; }
+
+  sha256_of() { sha256sum "$1" | awk '{print $1}'; }
+
+  # "linux/amd64 linux/arm64" -> 逐行
+  each_target() { printf '%s\n' $1 | sed '/^$/d'; }
+
+  goos_of()   { case "$1" in linux) echo linux ;; darwin) echo darwin ;; windows) echo windows ;; *) die "不支持的 os: $1" ;; esac; }
+  goarch_of() { case "$1" in amd64) echo amd64 ;; arm64) echo arm64 ;; arm) echo arm ;; *) die "不支持的 arch: $1" ;; esac; }
+  exe_suffix(){ [ "$1" = "windows" ] && printf '.exe' || printf ''; }
+
+  rust_triple_of() {
+    case "$1" in
+      linux/amd64)   echo x86_64-unknown-linux-gnu ;;
+      linux/arm64)   echo aarch64-unknown-linux-gnu ;;
+      darwin/amd64)  echo x86_64-apple-darwin ;;
+      darwin/arm64)  echo aarch64-apple-darwin ;;
+      windows/amd64) echo x86_64-pc-windows-msvc ;;
+      *) die "Rust 没有为该目标预置 triple: $1（请用 build.native_command 自定义）" ;;
+    esac
+  }
+
+  # 目标 -> 资源名后缀，例如 linux/amd64 -> linux-amd64
+  asset_suffix_of() { printf '%s\n' "$1" | tr '/' '-'; }
+  asset_suffix_of_list() { local t; for t in $1; do asset_suffix_of "$t"; done | tr '\n' ' '; }
+
+  ub_python() { python3 "${UB_REPO_ROOT:?UB_REPO_ROOT 未设置}/scripts/ub.py" "$@"; }
+
+  # 展开 build.native_command 里的占位符
+  expand_cmd() {
+    local cmd="$1" os="$2" arch="$3" outdir="$4"
+    cmd="${cmd//\{os\}/$os}"
+    cmd="${cmd//\{arch\}/$arch}"
+    cmd="${cmd//\{goos\}/$(goos_of "$os")}"
+    cmd="${cmd//\{goarch\}/$(goarch_of "$arch")}"
+    cmd="${cmd//\{target\}/$(asset_suffix_of "$os/$arch")}"
+    cmd="${cmd//\{triple\}/$(rust_triple_of "$os/$arch")}"
+    cmd="${cmd//\{outdir\}/$outdir}"
+    printf '%s' "$cmd"
+  }
+
+  # build.env / docker.env 之类的小 map -> KEY=VALUE 行
+  json_to_env_lines() {
+    python3 -c '
+import json,sys
+try: d=json.loads(sys.argv[1] or "{}")
+except Exception: d={}
+for k,v in d.items(): print(f"{k}={v}")
+' "$1"
+  }
+
+  # 执行 build.assets（架构无关的准备步骤：前端构建、代码生成……）
+  run_assets() {
+    local src="$1" assets_json="$2" i=0
+    local n
+    n=$(python3 -c 'import json,sys; print(len(json.loads(sys.argv[1] or "[]")))' "$assets_json")
+    [ "$n" = "0" ] && { log "没有 assets 步骤"; return 0; }
+    while [ "$i" -lt "$n" ]; do
+      local run wd shell_
+      run=$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])[int(sys.argv[2])].get("run",""))' "$assets_json" "$i")
+      wd=$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])[int(sys.argv[2])].get("workdir","."))' "$assets_json" "$i")
+      shell_=$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])[int(sys.argv[2])].get("shell","bash"))' "$assets_json" "$i")
+      [ -z "$run" ] && { i=$((i+1)); continue; }
+      group "asset[$i] (workdir=$wd): $run"
+      log "运行架构无关的准备步骤：$run"
+      ( cd "$src/$wd" && "$shell_" -c "$run" ) || die "assets 步骤失败: $run"
+      group_end
+      i=$((i+1))
+    done
+  }
+fi

@@ -1,0 +1,100 @@
+name: sync
+
+# 定时检查上游变化（计划 9.1），只提交很小的状态文件，不提交源码。
+# 关键点：GITHUB_TOKEN 推送产生的事件不会触发其它 workflow，
+# 所以解析完后必须显式 `gh workflow run build.yml`，且本 Job 需要 actions:write。
+
+on:
+  schedule:
+    - cron: '17 3 * * *'      # 避开整点：GitHub schedule 在整点排队严重
+  workflow_dispatch:
+    inputs:
+      project:
+        description: '项目名，或 all'
+        type: string
+        default: all
+      force:
+        description: '忽略 SHA 未变化，强制构建'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write          # 提交 reports/upstream-state.json
+      actions: write           # gh workflow run build.yml
+    outputs:
+      has_work: ${{ steps.plan.outputs.has_work }}
+      projects: ${{ steps.plan.outputs.projects }}
+      pins: ${{ steps.plan.outputs.pins }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 校验 upstream.json
+        run: python3 scripts/ub.py validate
+
+      - name: 解析上游最新 SHA 并决定构建范围
+        id: plan
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PROJECT: ${{ inputs.project }}
+          FORCE: ${{ inputs.force }}
+        run: |
+          set -euo pipefail
+          args=(--project "${PROJECT:-all}" --github-output)
+          [ "${FORCE:-false}" = "true" ] && args+=(--force)
+          python3 scripts/ub.py plan "${args[@]}"
+
+      - name: 提交同步状态
+        run: |
+          set -euo pipefail
+          if [ -n "$(git status --porcelain reports/upstream-state.json)" ]; then
+            git config user.name  "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add reports/upstream-state.json
+            git commit -m "chore(sync): 更新上游同步状态 [skip ci]"
+            git push
+            echo "已提交状态变更"
+          else
+            echo "状态无变化"
+          fi
+
+      - name: 触发构建（显式 dispatch，而不是依赖 push 事件）
+        if: steps.plan.outputs.has_work == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PROJECTS: ${{ steps.plan.outputs.projects }}
+          PINS: ${{ steps.plan.outputs.pins }}
+        run: |
+          set -euo pipefail
+          echo "触发的项目: $PROJECTS"
+          gh workflow run build.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref "$GITHUB_REF_NAME" \
+            -f project="$PROJECTS" \
+            -f pins="$PINS" \
+            -f publish=true
+
+      - name: 摘要
+        if: always()
+        env:
+          HAS_WORK: ${{ steps.plan.outputs.has_work }}
+          PROJECTS: ${{ steps.plan.outputs.projects }}
+        run: |
+          {
+            echo "## 上游同步"
+            echo ""
+            if [ "$HAS_WORK" = "true" ]; then
+              echo "检测到变化并已触发构建：\`$PROJECTS\`"
+            else
+              echo "上游无变化（或命中节流），未触发构建。"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

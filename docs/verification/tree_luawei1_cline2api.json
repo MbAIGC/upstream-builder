@@ -1,0 +1,489 @@
+{
+  "sha": "5b60a67fc570e26da6f50b5c055c4870fe450f1c",
+  "url": "https://api.github.com/repos/luawei1/cline2api/git/trees/5b60a67fc570e26da6f50b5c055c4870fe450f1c",
+  "tree": [
+    {
+      "path": ".github",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "bf5f24483e5f4f4272774d68d3f92d654330d548",
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/trees/bf5f24483e5f4f4272774d68d3f92d654330d548"
+    },
+    {
+      "path": ".github/workflows",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "657a76645e7135eb4fd6b237e626aa4c19514936",
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/trees/657a76645e7135eb4fd6b237e626aa4c19514936"
+    },
+    {
+      "path": ".github/workflows/build.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1575489fe77718c5affbf1dcf4273e25b106de38",
+      "size": 2239,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/1575489fe77718c5affbf1dcf4273e25b106de38"
+    },
+    {
+      "path": ".gitignore",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5bee01cac5f9a573a4adbb23948af76845eb44d6",
+      "size": 945,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/5bee01cac5f9a573a4adbb23948af76845eb44d6"
+    },
+    {
+      "path": "Dockerfile",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2a4bed4332a2b41d37c29728fb8bc6d924210287",
+      "size": 575,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/2a4bed4332a2b41d37c29728fb8bc6d924210287"
+    },
+    {
+      "path": "LICENSE",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cdd36a1499244e8e1400cee1ee5b1789098efd3e",
+      "size": 1064,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/cdd36a1499244e8e1400cee1ee5b1789098efd3e"
+    },
+    {
+      "path": "README.en.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "578c27166649d1ddb4de8ec9906671aae0baefef",
+      "size": 10142,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/578c27166649d1ddb4de8ec9906671aae0baefef"
+    },
+    {
+      "path": "README.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e9ea3e3a3910a37932f88f93ec77fbc236cd5ead",
+      "size": 9884,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/e9ea3e3a3910a37932f88f93ec77fbc236cd5ead"
+    },
+    {
+      "path": "admin.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "553481597371539c90a17f5966300393dd648d54",
+      "size": 50701,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/553481597371539c90a17f5966300393dd648d54"
+    },
+    {
+      "path": "admin_html.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1dd83ab642d6aa25b4305ba1ae984e0b0dcb179b",
+      "size": 165868,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/1dd83ab642d6aa25b4305ba1ae984e0b0dcb179b"
+    },
+    {
+      "path": "auth.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "435b80d57424320951d44aa18306f697d63256bd",
+      "size": 10113,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/435b80d57424320951d44aa18306f697d63256bd"
+    },
+    {
+      "path": "capture.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9096e83bb5f915fa43733f79782fbcbe13aa2c5e",
+      "size": 15584,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/9096e83bb5f915fa43733f79782fbcbe13aa2c5e"
+    },
+    {
+      "path": "cline_proxy.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fb7eb449769e11b5faa2ac24f53fb976b5b2177e",
+      "size": 6713,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/fb7eb449769e11b5faa2ac24f53fb976b5b2177e"
+    },
+    {
+      "path": "cline_proxy_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "bd3ec02eead40ff8f87a3b1082354023f81bf02a",
+      "size": 4744,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/bd3ec02eead40ff8f87a3b1082354023f81bf02a"
+    },
+    {
+      "path": "compact.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f07decb78506f46db40d3f81da16755bbddfe60b",
+      "size": 13487,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/f07decb78506f46db40d3f81da16755bbddfe60b"
+    },
+    {
+      "path": "delisted_model_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0023990828cb902bf22a19bc65d297994977b641",
+      "size": 5279,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/0023990828cb902bf22a19bc65d297994977b641"
+    },
+    {
+      "path": "desktop",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "8e728acaee7bf1c1c050c8b1ee753848620b6561",
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/trees/8e728acaee7bf1c1c050c8b1ee753848620b6561"
+    },
+    {
+      "path": "desktop/README.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4ba8ce4d10501ccb4d5474888e1995735586efa7",
+      "size": 4303,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/4ba8ce4d10501ccb4d5474888e1995735586efa7"
+    },
+    {
+      "path": "desktop/build.sh",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2846a36acb421934b9a4911a39d436d5da36e6f8",
+      "size": 1298,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/2846a36acb421934b9a4911a39d436d5da36e6f8"
+    },
+    {
+      "path": "desktop/dist.sh",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1651848671abc93909368b1f2430b89d35ff0301",
+      "size": 1366,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/1651848671abc93909368b1f2430b89d35ff0301"
+    },
+    {
+      "path": "desktop/icon-gen",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "a31eed2c238703095e6eb2ba6d1a20b2ec42a179",
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/trees/a31eed2c238703095e6eb2ba6d1a20b2ec42a179"
+    },
+    {
+      "path": "desktop/icon-gen/go.mod",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "eaa0ec4b9b0ff57e205847711344556f51f6173e",
+      "size": 192,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/eaa0ec4b9b0ff57e205847711344556f51f6173e"
+    },
+    {
+      "path": "desktop/icon-gen/go.sum",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4b2e4c4272d4814007d1d1ba7f36f30c10109a91",
+      "size": 543,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/4b2e4c4272d4814007d1d1ba7f36f30c10109a91"
+    },
+    {
+      "path": "desktop/icon-gen/main.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5d120fe478553a0e0f80b7828111b64065d5ef48",
+      "size": 4164,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/5d120fe478553a0e0f80b7828111b64065d5ef48"
+    },
+    {
+      "path": "desktop/sign-self.ps1",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5156dd28a8a47667c6c8970989b75879603ffc7a",
+      "size": 2508,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/5156dd28a8a47667c6c8970989b75879603ffc7a"
+    },
+    {
+      "path": "desktop_main.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "325028baaa4389a5920e26a3c99923eb89f0e765",
+      "size": 3862,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/325028baaa4389a5920e26a3c99923eb89f0e765"
+    },
+    {
+      "path": "docker-compose.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8864f58a1b9a667fdfa9449ca834bb569ba3eeee",
+      "size": 309,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/8864f58a1b9a667fdfa9449ca834bb569ba3eeee"
+    },
+    {
+      "path": "free_model_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "81127b3826f094719f51335cf6e462930d9565b8",
+      "size": 38604,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/81127b3826f094719f51335cf6e462930d9565b8"
+    },
+    {
+      "path": "frontend",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "c8796f8f3bd6bef6b0f7013e5fddb6e295dbe9b3",
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/trees/c8796f8f3bd6bef6b0f7013e5fddb6e295dbe9b3"
+    },
+    {
+      "path": "frontend/package.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0967ef424bce6791893e9a57bb952f80fd536e93",
+      "size": 3,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/0967ef424bce6791893e9a57bb952f80fd536e93"
+    },
+    {
+      "path": "frontend/src",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "d564d0bc3dd917926892c55e3706cc116d5b165e",
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/trees/d564d0bc3dd917926892c55e3706cc116d5b165e"
+    },
+    {
+      "path": "frontend/src/.gitkeep",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size": 0,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "go.mod",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3686ad00eb3e067299cc9da87d378bb3ca0d6c43",
+      "size": 1544,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/3686ad00eb3e067299cc9da87d378bb3ca0d6c43"
+    },
+    {
+      "path": "go.sum",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e506b5c30da5e5235709e1e4c78a715b443c87aa",
+      "size": 7686,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/e506b5c30da5e5235709e1e4c78a715b443c87aa"
+    },
+    {
+      "path": "http.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3abc3231693a24afce906ffe4ec8b01cf7e65444",
+      "size": 2517,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/3abc3231693a24afce906ffe4ec8b01cf7e65444"
+    },
+    {
+      "path": "http_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "95fbca2798ba1bb2b755b609fe2ed0fa7b5a4592",
+      "size": 1598,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/95fbca2798ba1bb2b755b609fe2ed0fa7b5a4592"
+    },
+    {
+      "path": "i18n.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d305cd2f226d3d2bfbc8066922507dcd198e0949",
+      "size": 7526,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/d305cd2f226d3d2bfbc8066922507dcd198e0949"
+    },
+    {
+      "path": "i18n_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d3c41b4e050c0c4ceffded9dba68e5b668cf8957",
+      "size": 2036,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/d3c41b4e050c0c4ceffded9dba68e5b668cf8957"
+    },
+    {
+      "path": "import_dedup_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "06ca148c2076451c34742a9a54ad8b0b72c7713a",
+      "size": 2240,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/06ca148c2076451c34742a9a54ad8b0b72c7713a"
+    },
+    {
+      "path": "main.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "bb0be6d9ff0491c8c295e4de4df5f109ad73f422",
+      "size": 3637,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/bb0be6d9ff0491c8c295e4de4df5f109ad73f422"
+    },
+    {
+      "path": "model-api.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a558f5fada87600c866dea044619a59006ed789d",
+      "size": 5620,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/a558f5fada87600c866dea044619a59006ed789d"
+    },
+    {
+      "path": "model_meta_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a089587f252f9aa0e06130e8a0e7d7de9142e79a",
+      "size": 3857,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/a089587f252f9aa0e06130e8a0e7d7de9142e79a"
+    },
+    {
+      "path": "models_sync.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a8a6e6179847fdf2bc1936e26bf32280ab6a8ce8",
+      "size": 12638,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/a8a6e6179847fdf2bc1936e26bf32280ab6a8ce8"
+    },
+    {
+      "path": "pool.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "340c844aeb6c99274920f15f16b340818c4449f4",
+      "size": 12470,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/340c844aeb6c99274920f15f16b340818c4449f4"
+    },
+    {
+      "path": "protocol_free_model_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "26fb216209909333d5d92e44748ffaa0258d783c",
+      "size": 20354,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/26fb216209909333d5d92e44748ffaa0258d783c"
+    },
+    {
+      "path": "providers.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b4de5342e53a71b9c7f377b9d0bdd8190372696c",
+      "size": 18871,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/b4de5342e53a71b9c7f377b9d0bdd8190372696c"
+    },
+    {
+      "path": "providers_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "82fcb4190fde58f0d2893acefbd903705ac9f99b",
+      "size": 5125,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/82fcb4190fde58f0d2893acefbd903705ac9f99b"
+    },
+    {
+      "path": "proxy.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d51ba5c9114608614acd76514d4b60744d80fa2d",
+      "size": 103554,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/d51ba5c9114608614acd76514d4b60744d80fa2d"
+    },
+    {
+      "path": "refresh_status_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "13aea6bd876f851256883a1ab095ab2423a0da5e",
+      "size": 3814,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/13aea6bd876f851256883a1ab095ab2423a0da5e"
+    },
+    {
+      "path": "request_logs.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "149178b5ef62ec00b7551bc3d36c12aa9222be52",
+      "size": 5389,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/149178b5ef62ec00b7551bc3d36c12aa9222be52"
+    },
+    {
+      "path": "request_logs_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1a40b6c2839319c767a7b5d04ef5a63a28024b68",
+      "size": 2420,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/1a40b6c2839319c767a7b5d04ef5a63a28024b68"
+    },
+    {
+      "path": "resource_windows_amd64.syso",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "55fdeda67736ef9705793eb31f9e7c2c00efba05",
+      "size": 12328,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/55fdeda67736ef9705793eb31f9e7c2c00efba05"
+    },
+    {
+      "path": "responses.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "eaf240aac4780493f493cdbe170e1e3568a22761",
+      "size": 20612,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/eaf240aac4780493f493cdbe170e1e3568a22761"
+    },
+    {
+      "path": "sanitize_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6b0a7ac4cfb8935363caf1d12555477aac6e9be4",
+      "size": 2463,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/6b0a7ac4cfb8935363caf1d12555477aac6e9be4"
+    },
+    {
+      "path": "types.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "726aadfa97381acb95a8efe69da0c865279017d7",
+      "size": 3230,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/726aadfa97381acb95a8efe69da0c865279017d7"
+    },
+    {
+      "path": "usage_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "340497c962b75101c1b6a2121546c4170c8feae9",
+      "size": 2038,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/340497c962b75101c1b6a2121546c4170c8feae9"
+    },
+    {
+      "path": "version.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "386baeac4be204af5a9c020f794d5269bf856a58",
+      "size": 284,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/386baeac4be204af5a9c020f794d5269bf856a58"
+    },
+    {
+      "path": "wails.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8650ff74ff56063b17e672aa1ce1a58b104ef41b",
+      "size": 284,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/8650ff74ff56063b17e672aa1ce1a58b104ef41b"
+    },
+    {
+      "path": "zen.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8b6a2161034f5d3cdec36e0fcd873f59c0698a5f",
+      "size": 38383,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/8b6a2161034f5d3cdec36e0fcd873f59c0698a5f"
+    },
+    {
+      "path": "zen_proxy.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9f7f8192d964be6a947e116bc0a4e9cdc3e04eca",
+      "size": 7869,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/9f7f8192d964be6a947e116bc0a4e9cdc3e04eca"
+    },
+    {
+      "path": "zen_test.go",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "471fa840f62b44f41f5531deaabc89de745697ac",
+      "size": 21517,
+      "url": "https://api.github.com/repos/luawei1/cline2api/git/blobs/471fa840f62b44f41f5531deaabc89de745697ac"
+    }
+  ],
+  "truncated": false
+}

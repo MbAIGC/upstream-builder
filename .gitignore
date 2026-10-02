@@ -1,0 +1,12 @@
+# 构建产物：全部落在 runner 临时目录，这里兜底防止误提交
+dist/
+reports/run-results/
+reports/build-report.json
+
+# 本地复现实验的临时目录（见 docs/verification/README.md）
+_recon/
+
+# 编辑器
+.DS_Store
+.idea/
+.vscode/

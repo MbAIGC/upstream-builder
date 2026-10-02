@@ -1,0 +1,63 @@
+name: manual-build
+
+# 手动构建入口（计划 9.3）。
+#
+# 为什么还要这一层：build.yml 是执行路径，它同时被 sync.yml 以固定参数调用；
+# 这里提供一个「人用」的入口，参数名与计划书一致（platforms / build_type），
+# 并默认带上 publish=true。手动覆盖会在 build.yml 里明确打印 ::warning:: 记录，
+# 不会静默改变仓库中的正式配置。
+
+on:
+  workflow_dispatch:
+    inputs:
+      project:
+        description: '项目名称，或 all'
+        type: string
+        default: all
+      force:
+        description: '忽略 SHA 未变化，强制重新构建'
+        type: boolean
+        default: false
+      publish:
+        description: '是否发布镜像和 Release'
+        type: boolean
+        default: true
+      platforms:
+        description: '目标架构，逗号分隔（留空用项目配置），例：linux/amd64'
+        type: string
+        default: ''
+      build_type:
+        description: '覆盖构建方式（留空用项目配置）：native|dockerfile|custom'
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write          # gh workflow run 需要
+      contents: read
+    steps:
+      - name: 转发到 build.yml
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PROJECT: ${{ inputs.project }}
+          FORCE: ${{ inputs.force }}
+          PUBLISH: ${{ inputs.publish }}
+          PLATFORMS: ${{ inputs.platforms }}
+          BUILD_TYPE: ${{ inputs.build_type }}
+        run: |
+          set -euo pipefail
+          # platforms 用逗号分隔，build.yml 内部会转成空格
+          gh workflow run build.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref "$GITHUB_REF_NAME" \
+            -f project="$PROJECT" \
+            -f force="$FORCE" \
+            -f publish="$PUBLISH" \
+            -f targets="$PLATFORMS" \
+            -f build_type="$BUILD_TYPE"
+          echo "已触发 build.yml：project=$PROJECT force=$FORCE publish=$PUBLISH platforms=$PLATFORMS build_type=$BUILD_TYPE"
