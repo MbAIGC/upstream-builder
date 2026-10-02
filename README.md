@@ -3,13 +3,40 @@
 多上游项目的自动同步、编译、二进制打包与 GHCR 镜像发布平台。运行在 GitHub Actions 上，
 配置驱动：**新增一个上游项目原则上只改 `upstream.json`。**
 
-本目录包含两份东西：
+## 已支持的上游与镜像
+
+| 上游项目 | 上游仓库 | 本仓库镜像（public，可直接拉取） | 架构 | 容器端口 / 数据卷 |
+|---|---|---|---|---|
+| **cline2api** | [luawei1/cline2api](https://github.com/luawei1/cline2api) | `ghcr.io/mbaigc/cline2api` | linux/amd64, linux/arm64 | `3457` / `/app/data` |
+| **cline-pass-switcher-go** | [Hxjcc/cline-pass-switcher-go](https://github.com/Hxjcc/cline-pass-switcher-go) | `ghcr.io/mbaigc/cline-pass-switcher-go` | linux/amd64, linux/arm64 | `3123` / `/data` |
+
+```bash
+# 最近一次验证通过的构建
+docker pull ghcr.io/mbaigc/cline2api:latest
+docker pull ghcr.io/mbaigc/cline-pass-switcher-go:latest
+
+# 不可变标签：指向具体上游 commit，可精确复现
+docker pull ghcr.io/mbaigc/cline2api:sha-5b60a67
+
+# 上游正式版本（仅上游有 tag 的项目才有）
+docker pull ghcr.io/mbaigc/cline2api:v1.6.4
+```
+
+标签规则：`sha-<7位commit>` 是每次构建都会推的**不可变**标签，`latest`（以及上游有正式版本时的
+`v1.6.4` 之类）只在 smoke 门禁与架构清单校验都通过后才从该 sha 标签**晋升**过去，因此
+`latest` 永远指向已验证过的 digest。当前状态见 [`reports/upstream-state.json`](reports/upstream-state.json)。
+
+> 这张表由 `upstream.json` 里的登记项决定。新增一个上游 = 在 `upstream.json` 加一条配置，
+> 然后同步更新本表。
+
+---
+
+本仓库还包含两份设计文档：
 
 | 文件 | 说明 |
 |---|---|
-| `go-upstream-builder-开发落地计划.md` | 原始方案（1230 行） |
-| `upstream-builder-可行性评审.md` | 对原始方案的评审：实测结论 + 4 处必须先改的缺陷 |
-| 本 README + `scripts/` + `.github/workflows/` | 按评审结论实现的**可运行骨架** |
+| [go-upstream-builder-开发落地计划.md](go-upstream-builder-开发落地计划.md) | 原始方案（1230 行） |
+| [upstream-builder-可行性评审.md](upstream-builder-可行性评审.md) | 对原始方案的评审：实测结论 + 4 处必须先改的缺陷 |
 
 ---
 
