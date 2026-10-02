@@ -8,8 +8,8 @@
     "continue_on_error": true
   },
   "sync": {
-    "layout": "vendor",
-    "vendor_dir": "vendor",
+    "layout": "repo",
+    "upstream_dir": "upstream",
     "state_file": "reports/upstream-state.json"
   },
   "projects": [

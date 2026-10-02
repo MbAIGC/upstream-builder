@@ -1,10 +1,10 @@
 name: sync
 
-# 定时检查上游变化（计划 9.1）：把变化的上游源码快照同步进 vendor/<name>/ 并提交，
+# 定时检查上游变化（计划 9.1）：把变化的上游源码快照同步进 upstream/<name>/ 并提交，
 # 然后显式触发 build。
 #
 # 两个关键点：
-#   1. 源码落库用 vendor/<name>/ 命名空间，而不是仓库根目录。上游自带的 .gitignore
+#   1. 源码落库用 upstream/<name>/ 命名空间，而不是仓库根目录。上游自带的 .gitignore
 #      作用域是所在目录及子目录，放根目录会让两个上游的规则互相覆盖（实测会静默丢掉
 #      测试文件），放进各自子目录后互不干扰。提交时用 git add -f 强制纳入，
 #      保证快照等于上游 tar.gz 的内容。
@@ -60,8 +60,8 @@ jobs:
           [ "${FORCE:-false}" = "true" ] && args+=(--force)
           python3 scripts/ub.py plan "${args[@]}"
 
-      - name: 同步源码快照到 vendor/
-        id: vendor
+      - name: 同步源码快照到 upstream/
+        id: source
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PROJECT: ${{ inputs.project }}
@@ -70,7 +70,7 @@ jobs:
           set -euo pipefail
           args=(--project "${PROJECT:-all}" --github-output)
           [ -n "$PINS" ] && args+=(--pins "$PINS")
-          python3 scripts/ub.py vendor-all "${args[@]}"
+          python3 scripts/ub.py sync-source-all "${args[@]}"
 
       - name: 提交快照与状态
         run: >-
@@ -102,7 +102,7 @@ jobs:
           {
             echo "## 上游同步"
             echo ""
-            echo "- 快照变更：\`${{ steps.vendor.outputs.changed || '无' }}\`"
+            echo "- 快照变更：\`${{ steps.source.outputs.changed || '无' }}\`"
             if [ "$HAS_WORK" = "true" ]; then
               echo "- 已触发构建：\`$PROJECTS\`"
             else

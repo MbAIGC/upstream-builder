@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 准备源码 + 跑架构无关的准备步骤（assets）+ 跑测试。
 # 输入：UB_* 环境变量（由 `ub.py env` 生成）。
-# 源码布局由 sync.layout 决定：vendor（仓库内 vendor/<name>/，sync 负责落库）
+# 源码布局由 sync.layout 决定：repo（仓库内 upstream/<name>/，sync 负责落库）
 # 或 none（按 SHA 现场下载到 $RUNNER_TEMP，不进仓库）。
 set -euo pipefail
 
@@ -10,7 +10,7 @@ export UB_REPO_ROOT="${UB_REPO_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 ub_init_paths
 
 group "准备上游源码"
-log "项目=$UB_NAME  上游=$UB_REPO  sha=$UB_SHA  布局=${UB_SYNC_LAYOUT:-vendor}"
+log "项目=$UB_NAME  上游=$UB_REPO  sha=$UB_SHA  布局=${UB_SYNC_LAYOUT:-repo}"
 ub_ensure_source
 group_end
 

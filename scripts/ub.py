@@ -111,7 +111,7 @@ def _check_keys(where, obj, allowed, required=()):
 
 
 DEFAULTS_KEYS = {"targets", "continue_on_error", "runners"}
-SYNC_KEYS = {"layout", "state_file", "workdir", "vendor_dir"}
+SYNC_KEYS = {"layout", "state_file", "workdir", "upstream_dir"}
 REF_KEYS = {"type", "value"}
 BUILD_KEYS = {
     "enabled", "language", "method", "go_version", "python_version", "node_version",
@@ -153,11 +153,11 @@ def validate_config(cfg) -> list:
 
     sync = cfg.get("sync", {})
     p += _check_keys("sync", sync, SYNC_KEYS)
-    layout = sync.get("layout", "vendor")
-    if layout not in {"none", "vendor"}:
-        p.append(f"sync.layout: 只支持 'vendor'（源码落库到 vendor/<name>/）或 'none'，收到 {layout!r}")
-    if layout == "vendor" and not is_safe_relpath(sync.get("vendor_dir", "vendor")):
-        p.append(f"sync.vendor_dir: 非法相对路径 {sync.get('vendor_dir')!r}")
+    layout = sync.get("layout", "repo")
+    if layout not in {"none", "repo"}:
+        p.append(f"sync.layout: 只支持 'repo'（源码随仓库落库到 upstream/<name>/）或 'none'，收到 {layout!r}")
+    if layout == "repo" and not is_safe_relpath(sync.get("upstream_dir", "upstream")):
+        p.append(f"sync.upstream_dir: 非法相对路径 {sync.get('upstream_dir')!r}")
 
     projects = cfg.get("projects")
     if not isinstance(projects, list) or not projects:
@@ -549,13 +549,13 @@ def fetch_snapshot(proj: dict, sha: str, dest: Path, token: str | None) -> dict:
 # 命令实现
 # --------------------------------------------------------------------------
 
-def vendor_one(proj, sha, version, dest: Path, token, dry_run=False, strip=(".github",)):
-    """把某个 SHA 的源码快照落到 dest（vendor/<name>/），并在里面写 UPSTREAM.json。
+def materialize_snapshot(proj, sha, version, dest: Path, token, dry_run=False, strip=(".github",)):
+    """把某个 SHA 的源码快照落到 dest（upstream/<name>/），并在里面写 UPSTREAM.json。
 
     为什么用命名空间目录而不是仓库根目录：上游自带的 .gitignore 作用域是它所在的
     目录及其子目录。两个上游都放在根目录时只能有一份 .gitignore，后同步的会覆盖
     先同步的，规则还会全局生效（实测：cline2api 的 *_test.go 规则会让另一个项目的
-    测试文件静默消失）。放进 vendor/<name>/ 后每个上游的规则只作用于自己的子树。
+    测试文件静默消失）。放进 upstream/<name>/ 后每个上游的规则只作用于自己的子树。
     """
     up = dest / "UPSTREAM.json"
     old = {}
@@ -569,7 +569,7 @@ def vendor_one(proj, sha, version, dest: Path, token, dry_run=False, strip=(".gi
                 "reason": "sha-unchanged", "tree_sha256": old.get("tree_sha256"),
                 "file_count": old.get("file_count"), "version": old.get("version")}
 
-    work = Path(tempfile.mkdtemp(prefix="ub-vendor-"))
+    work = Path(tempfile.mkdtemp(prefix="ub-snap-"))
     try:
         snap = work / "snap"
         info = fetch_snapshot(proj, sha, snap, token)
@@ -624,8 +624,8 @@ def vendor_one(proj, sha, version, dest: Path, token, dry_run=False, strip=(".gi
         shutil.rmtree(work, ignore_errors=True)
 
 
-def _vendor_dir(cfg) -> Path:
-    return Path(cfg.get("sync", {}).get("vendor_dir", "vendor"))
+def _upstream_dir(cfg) -> Path:
+    return Path(cfg.get("sync", {}).get("upstream_dir", "upstream"))
 
 
 def _pin_sha(pins, name):
@@ -635,7 +635,7 @@ def _pin_sha(pins, name):
     return v, None
 
 
-def _emit_vendor_summary(results, github_output):
+def _emit_sync_summary(results, github_output):
     changed = [r for r in results if r["changed"]]
     payload = {"changed": [r["project"] for r in changed], "results": results}
     print(json.dumps(payload, indent=2, ensure_ascii=False))
@@ -648,11 +648,11 @@ def _emit_vendor_summary(results, github_output):
     return 0
 
 
-def cmd_vendor(args):
+def cmd_sync_source(args):
     cfg = load_config(args.config)
     proj = get_project(cfg, args.project)
     token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
-    dest = Path(args.dest) if args.dest else _vendor_dir(cfg) / proj["name"]
+    dest = Path(args.dest) if args.dest else _upstream_dir(cfg) / proj["name"]
     sha = args.sha
     if not sha:
         st = load_state(state_path(cfg, args.state))
@@ -660,13 +660,13 @@ def cmd_vendor(args):
     if not sha:
         die(f"{proj['name']}: 没有目标 SHA，请用 --sha 指定或先跑 plan")
     version = args.version or (sha[:7])
-    info = vendor_one(proj, sha, version, dest, token, dry_run=args.dry_run)
+    info = materialize_snapshot(proj, sha, version, dest, token, dry_run=args.dry_run)
     print(json.dumps(info, indent=2, ensure_ascii=False))
     return 0
 
 
-def cmd_vendor_all(args):
-    """把 pins 里所有项目的快照同步到 vendor/<name>/（sync.yml 用）。"""
+def cmd_sync_source_all(args):
+    """把 pins 里所有项目的快照同步到 upstream/<name>/（sync.yml 用）。"""
     cfg = load_config(args.config)
     pins = json.loads(args.pins) if args.pins else {}
     token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
@@ -682,12 +682,12 @@ def cmd_vendor_all(args):
         if not sha:
             print(f"skip {name}: 没有 SHA", file=sys.stderr)
             continue
-        dest = _vendor_dir(cfg) / name
-        info = vendor_one(proj, sha, version or sha[:7], dest, token, dry_run=args.dry_run)
+        dest = _upstream_dir(cfg) / name
+        info = materialize_snapshot(proj, sha, version or sha[:7], dest, token, dry_run=args.dry_run)
         flag = "SYNC " if info["changed"] else "keep "
         print(f"{flag}{name:<26} {sha[:12]}  {info['reason']}", file=sys.stderr)
         results.append(info)
-    return _emit_vendor_summary(results, args.github_output)
+    return _emit_sync_summary(results, args.github_output)
 
 
 def cmd_validate(args):
@@ -910,8 +910,8 @@ def cmd_env(args):
 
     kv = {
         "UB_NAME": proj["name"],
-        "UB_SYNC_LAYOUT": (cfg.get("sync") or {}).get("layout", "vendor"),
-        "UB_VENDOR_DIR": (cfg.get("sync") or {}).get("vendor_dir", "vendor"),
+        "UB_SYNC_LAYOUT": (cfg.get("sync") or {}).get("layout", "repo"),
+        "UB_UPSTREAM_DIR": (cfg.get("sync") or {}).get("upstream_dir", "upstream"),
         "UB_REPO": proj["repo"],
         "UB_SHA": sha,
         "UB_SHORT_SHA": sha[:7],
@@ -1225,22 +1225,22 @@ def build_parser():
     s.add_argument("--format", choices=["shell", "json", "github-env"], default="shell")
     s.set_defaults(func=cmd_env)
 
-    s = cmd_parser("vendor", help="把某个 SHA 的源码快照落到 vendor/<name>/（落库布局）")
+    s = cmd_parser("sync-source", help="把某个 SHA 的源码快照落到 upstream/<name>/（落库布局）")
     s.add_argument("--project", required=True)
     s.add_argument("--sha")
     s.add_argument("--version")
     s.add_argument("--dest")
     s.add_argument("--state")
     s.add_argument("--dry-run", action="store_true")
-    s.set_defaults(func=cmd_vendor)
+    s.set_defaults(func=cmd_sync_source)
 
-    s = cmd_parser("vendor-all", help="按 pins 同步所有项目的快照到 vendor/<name>/")
+    s = cmd_parser("sync-source-all", help="按 pins 同步所有项目的快照到 upstream/<name>/")
     s.add_argument("--project", default="all")
     s.add_argument("--pins")
     s.add_argument("--state")
     s.add_argument("--dry-run", action="store_true")
     s.add_argument("--github-output", action="store_true")
-    s.set_defaults(func=cmd_vendor_all)
+    s.set_defaults(func=cmd_sync_source_all)
 
     s = cmd_parser("fetch", help="按 SHA 下载源码快照到临时目录（不落库）")
     s.add_argument("--project", required=True)

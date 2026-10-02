@@ -107,7 +107,7 @@ git add -A 后 tracked *_test.go：81 个（全部提交）
 3. **构建输入被静默篡改。** 上游还有 `.gitattributes`（cps 有 `*.sh text eol=lf`）同样冲突。上游的 `.github/workflows/ci.yml`（两个仓库都有）如果落到根目录，会变成**管理仓库自己的 workflow**，被触发、消耗额度、可能直接失败。
 4. 计划书 §4.3 说「禁止删除管理仓库自身的 `.github/`、`scripts/`…」，所以你必须把上游的 `.github` 剔除——但剔除之后，你构建的源码快照**已经不等于上游源码**了，而 snapshot 里没有任何东西记录这个差异。
 
-**实测修法（推荐）：快照放 `vendor/<name>/` 命名空间下。**
+**实测修法（推荐）：快照放 `upstream/<name>/` 命名空间下。**
 
 ```
 磁盘上 cline2api *_test.go：14 → tracked：0   （它自己的 .gitignore 生效，符合上游策略）
@@ -115,17 +115,17 @@ git add -A 后 tracked *_test.go：81 个（全部提交）
 ```
 
 嵌套的 `.gitignore` 只作用于自己的子目录，两个项目各按自己的策略处理，**零冲突、结果确定**。
-骨架采用的就是这个布局（`vendor/<name>/`），并在提交时用 `git add -f`，让快照严格等于上游 tar.gz 的内容。
+骨架采用的就是这个布局（`upstream/<name>/`），并在提交时用 `git add -f`，让快照严格等于上游 tar.gz 的内容。
 
 **三种选择：**
 
 | 方案 | 优点 | 代价 |
 |---|---|---|
-| **A. `vendor/<name>/` 命名空间**（本项目采用） | 修掉全部冲突；保留快照可审计 | 推翻计划书 §一.1/§一.2 的「根目录」要求 |
+| **A. `upstream/<name>/` 命名空间**（本项目采用） | 修掉全部冲突；保留快照可审计 | 推翻计划书 §一.1/§一.2 的「根目录」要求 |
 | **B. 不落库**：按 SHA 现场下载 → 同一次 workflow 内构建 → state 只记 SHA | 彻底消灭 gitignore 冲突、路径穿越、仓库膨胀；provenance 更强（`(repo, sha)` 可直接复现） | 仓库里看不到源码；需要一个 state 文件记录已构建 SHA |
 | **C. 坚持根目录** | 不改文档 | 必须同步时剔除上游 `.gitignore`/`.gitattributes`/`.github`，由平台维护唯一根 `.gitignore`，并在报告里显式记录「构建输入已被改写」 |
 
-> 本项目按「源码要落库」的要求采用 **A（`vendor/<name>/`）**，并额外做了三件事让 A 也安全：
+> 本项目按「源码要落库」的要求采用 **A（`upstream/<name>/`）**，并额外做了三件事让 A 也安全：
 > 提交用 `git add -f`（快照等于 tar.gz 内容，不受上游 `.gitignore` 影响）、
 > 剔除上游 `.github/`（避免其 workflow 在本仓库被执行，并在 `UPSTREAM.json` 里记录 `stripped`）、
 > 以及把上游 ref 与 `tree_sha256` 写进 `UPSTREAM.json`（构建输入的任何改写都可见）。
@@ -228,7 +228,7 @@ git add -A 后 tracked *_test.go：81 个（全部提交）
 计划书 §十七 的顺序基本合理，按上面的评审调整如下：
 
 1. **配置系统 + 骨架**（`upstream.json` v2：三轴 + target 对象 + 能力标志 + 校验器）
-2. **同步器**（默认 `layout: "vendor"`：按 SHA 下载 → 校验 → 原子替换 `vendor/<name>/` → 记 provenance；
+2. **同步器**（默认 `layout: "repo"`：按 SHA 下载 → 校验 → 原子替换 `upstream/<name>/` → 记 provenance；
    `layout: "none"` 作为可选布局，两种布局下构建脚本一致）
 3. **Go 适配器**（交叉编译 + `assets` 阶段分离；`package` 路径必须从配置读，别学 §6.1 的示例）
 4. **Docker 构建 + OCI archive 传递 + staging tag 晋升**（把「构建」和「发布」拆成两个 Job，权限按 §3.2）
@@ -311,7 +311,7 @@ git add -A 后 tracked *_test.go：81 个（全部提交）
 
 | 评审结论 | 落地情况 |
 |---|---|
-| §3.1 源码落库用命名空间 | ✅ `sync.layout = "vendor"`：快照提交到 `vendor/<name>/`（`git add -f` + 剔除 `.github` + `UPSTREAM.json` 记录 provenance）；`layout: "none"` 仍可选 |
+| §3.1 源码落库用命名空间 | ✅ `sync.layout = "repo"`：快照提交到 `upstream/<name>/`（`git add -f` + 剔除 `.github` + `UPSTREAM.json` 记录 provenance）；`layout: "none"` 仍可选 |
 | §3.2 构建/发布分离 | ✅ `build` Job 只有 `contents: read`；发布走 OCI archive + skopeo，发布 Job 不执行上游代码 |
 | §3.3 Actions 具体坑 | ✅ 显式 `gh workflow run` + `actions: write`；`provenance: false`；lockfile 哈希缓存；`concurrency` 不打断发布；部分失败汇总 |
 | §3.4 arm64 策略 | ✅ `docker.native_per_arch` 开关 + 按架构矩阵展开 + `imagetools create` 合成 |
@@ -323,7 +323,7 @@ git add -A 后 tracked *_test.go：81 个（全部提交）
 
 1. `throttle.min_interval_hours` —— cps 每天 1~13 次提交，没有节流就会天天重建。
 2. `build.assets[]` —— 架构无关的前端构建只跑一次，而不是每个架构重复跑（QEMU 下尤其致命）。
-3. `ub.py lockhash` —— 锁文件在 `vendor/<name>/` 而不在仓库根目录，
+3. `ub.py lockhash` —— 锁文件在 `upstream/<name>/` 而不在仓库根目录，
    `setup-go`/`setup-node` 的 `cache: true` 只会去根目录找（找不到直接失败），必须改成"源码就绪 → 算哈希 → actions/cache"。
 4. `record` 阶段区分 `last_synced_sha` 与 `last_successful_build_sha`（计划 §10.1 要求），
    并保证部分失败在报告与 workflow 状态里都如实体现。

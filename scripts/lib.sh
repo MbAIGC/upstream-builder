@@ -56,9 +56,9 @@ if [ -z "${UB_LIB_LOADED:-}" ]; then
     export UB_WORK="${UB_WORK:-${RUNNER_TEMP:-/tmp}/ub}"
     export UB_DIST="${UB_DIST:-$UB_WORK/dist}"
     export UB_OUT="${UB_OUT:-$UB_WORK/out-${UB_ENTRY:-${UB_NAME:?UB_NAME 未设置}}}"
-    if [ "${UB_SYNC_LAYOUT:-vendor}" = "vendor" ]; then
+    if [ "${UB_SYNC_LAYOUT:-repo}" = "repo" ]; then
       # 落库布局：源码就是仓库里的快照，不复制到临时目录（大仓库复制很贵）
-      export UB_SRC="${UB_SRC:-$UB_REPO_ROOT/${UB_VENDOR_DIR:-vendor}/${UB_NAME:?UB_NAME 未设置}}"
+      export UB_SRC="${UB_SRC:-$UB_REPO_ROOT/${UB_UPSTREAM_DIR:-upstream}/${UB_NAME:?UB_NAME 未设置}}"
     else
       export UB_SRC="${UB_SRC:-$UB_WORK/src/${UB_NAME:?UB_NAME 未设置}}"
       mkdir -p "$UB_SRC"
@@ -69,16 +69,16 @@ if [ -z "${UB_LIB_LOADED:-}" ]; then
   # 保证 UB_SRC 里是 UB_SHA 对应的源码。幂等，可重复调用。
   ub_ensure_source() {
     ub_init_paths
-    if [ "${UB_SYNC_LAYOUT:-vendor}" = "vendor" ]; then
+    if [ "${UB_SYNC_LAYOUT:-repo}" = "repo" ]; then
       local up="$UB_SRC/UPSTREAM.json" cur=""
       if [ -f "$up" ]; then
         cur="$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1])).get("sha",""))' "$up" 2>/dev/null || true)"
       fi
       if [ "$cur" = "$UB_SHA" ]; then
-        log "复用仓库内快照（${UB_VENDOR_DIR:-vendor}/$UB_NAME，sha=${UB_SHA:0:12}）"
+        log "复用仓库内快照（${UB_UPSTREAM_DIR:-upstream}/$UB_NAME，sha=${UB_SHA:0:12}）"
       else
         warn "仓库内快照与目标 SHA 不一致（现有=${cur:-<无>} 目标=$UB_SHA），现场补同步"
-        ub_python vendor --project "$UB_NAME" --sha "$UB_SHA" --version "$UB_VERSION" --dest "$UB_SRC" >/dev/null
+        ub_python sync-source --project "$UB_NAME" --sha "$UB_SHA" --version "$UB_VERSION" --dest "$UB_SRC" >/dev/null
         log "已补齐快照：$UB_SRC"
       fi
       [ -d "$UB_SRC" ] || die "快照目录不存在: $UB_SRC"

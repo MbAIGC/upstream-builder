@@ -93,12 +93,14 @@ push sha-<short>  ->  校验实际架构清单  ->  晋升 latest/版本标签  
 
 ---
 
-## 源码同步：落库到 `vendor/<name>/`
+## 源码同步：落库到 `upstream/<name>/`
+
+> 目录名、配置键与布局值是一套：目录 `upstream/<name>/`、`sync.upstream_dir`、`sync.layout: "repo"`。
 
 上游源码快照**提交进管理仓库**，每个项目一个命名空间目录：
 
 ```
-vendor/
+upstream/
 ├── cline2api/
 │   ├── UPSTREAM.json      # 上游地址 / ref / SHA / 版本 / 源码树摘要 / 文件数
 │   └── ...                # 上游 tar.gz 的内容（.github 已剔除）
@@ -109,7 +111,7 @@ vendor/
 
 由 `sync` workflow 负责写入并提交（每天一次 + 手动）。
 
-### 为什么是 `vendor/<name>/` 而不是仓库根目录
+### 为什么是 `upstream/<name>/` 而不是仓库根目录
 
 上游自带的 `.gitignore` 作用域是**它所在的目录及其所有子目录**，而一个仓库根目录
 只能有一份 `.gitignore`。把两份快照都摊在根目录时：后同步的那份会覆盖前一份，
@@ -119,7 +121,7 @@ vendor/
 
 ### 提交时用 `git add -f`
 
-`sync` 提交快照时用 `git add -A -f vendor/<name>` **强制纳入**。原因：快照的语义是
+`sync` 提交快照时用 `git add -A -f upstream/<name>` **强制纳入**。原因：快照的语义是
 「上游 tar.gz 的内容」，不应该受上游 `.gitignore` 影响——否则 cline2api 的 14 个
 `*_test.go` 会被丢掉，构建阶段跑测试就成了空跑。源码归档本身只包含上游已跟踪的文件，
 所以 `-f` 不会引入游离文件。
@@ -127,7 +129,7 @@ vendor/
 每次同步还会：
 
 - 剔除上游 `.github/`（否则上游 workflow 会变成本仓库的 workflow 被执行）；
-- 写 `vendor/<name>/UPSTREAM.json` 记录 provenance（SHA、版本、`tree_sha256`、文件数）；
+- 写 `upstream/<name>/UPSTREAM.json` 记录 provenance（SHA、版本、`tree_sha256`、文件数）；
 - SHA 未变化时**完全不重写**，避免产生无意义的提交；
 - 替换是原子的（先备份旧快照，移动成功后才删），失败时保留旧源码。
 
@@ -135,7 +137,7 @@ vendor/
 
 把 `upstream.json` 的 `sync.layout` 改成 `"none"`：源码改为按 SHA 现场下载到
 `$RUNNER_TEMP`，只在仓库里留几百字节的状态文件。两种布局下构建脚本完全一致——
-`ub_ensure_source` 发现 `vendor/<name>/` 缺失或 SHA 不匹配时会**现场补同步**，
+`ub_ensure_source` 发现 `upstream/<name>/` 缺失或 SHA 不匹配时会**现场补同步**，
 所以 build 不依赖 sync 是否已经跑过。
 
 ### 代价与对策
@@ -143,7 +145,7 @@ vendor/
 | 代价 | 对策 |
 |---|---|
 | 仓库体积会随上游更新增长 | `sync` 每天最多一次；SHA 未变不产生提交；上游提交频繁的项目可加 `throttle` 降低构建频率 |
-| 锁文件在 `vendor/<name>/` 而不在仓库根目录，`setup-go`/`setup-node` 的 `cache:true` 找不到（会直接失败） | 工作流顺序：源码就绪 → `ub.py lockhash` 算锁文件哈希 → `actions/cache` |
+| 锁文件在 `upstream/<name>/` 而不在仓库根目录，`setup-go`/`setup-node` 的 `cache:true` 找不到（会直接失败） | 工作流顺序：源码就绪 → `ub.py lockhash` 算锁文件哈希 → `actions/cache` |
 | 快照与上游 git 跟踪文件不完全等同时（我们去掉了 `.github`） | `UPSTREAM.json` 里记录 `stripped` 字段，构建输入的任何改写都可见 |
 
 
@@ -153,9 +155,9 @@ vendor/
 
 ```
 upstream.json               唯一项目登记入口
-vendor/<name>/              上游源码快照（由 sync 提交）+ UPSTREAM.json
+upstream/<name>/              上游源码快照（由 sync 提交）+ UPSTREAM.json
 scripts/
-  ub.py                     引擎：validate / plan / vendor / env / lockhash / record / report
+  ub.py                     引擎：validate / plan / sync-source / env / lockhash / record / report
   lib.sh                    公共函数（路径、日志、目标解析、assets 执行）
   source-step.sh            工作流用：源码就绪并把路径写进 $GITHUB_ENV
   commit-and-push.sh        提交并推送（带 rebase 重试，sync 与 record 会并发写 main）
@@ -189,8 +191,8 @@ docs/verification/          本地实测日志与复现脚本
     "runners": { "amd64": "ubuntu-latest", "arm64": "ubuntu-24.04-arm" }
   },
   "sync": {
-    "layout": "vendor",                          // vendor=源码落库到 vendor/<name>/；none=现场下载
-    "vendor_dir": "vendor",
+    "layout": "repo",                            // repo=源码随仓库落库到 upstream/<name>/；none=现场下载
+    "upstream_dir": "upstream",
     "state_file": "reports/upstream-state.json"
   },
   "projects": [ /* ... */ ]
@@ -299,7 +301,7 @@ Python            -> py-svc-amd64                      runner=ubuntu-latest
 ## 已知限制（诚实清单）
 
 **已在本地用两个真实上游端到端验证过：**
-解析 SHA / 增量决策 / 状态文件、`vendor/<name>/` 落库（幂等、剔除 `.github`、SHA 不一致时现场补同步）、
+解析 SHA / 增量决策 / 状态文件、`upstream/<name>/` 落库（幂等、剔除 `.github`、SHA 不一致时现场补同步）、
 Go 原生编译（`./cmd/cline-pass-switcher`）、上游 Dockerfile 构建、smoke 门禁、OCI archive 导出、
 打包（含 LICENSE/SOURCE.txt/SHA256SUMS）、发布路径（`oci-archive` → registry → 晋升后 digest 一致）、
 Python 适配器与按架构矩阵展开、记录与报告（含部分失败如实上报）。
@@ -323,7 +325,7 @@ Python 适配器与按架构矩阵展开、记录与报告（含部分失败如�
 | `exec format error` | 在没有目标架构模拟器/原生 runner 的情况下构建了该架构的镜像。检查 `docker.targets` 与 `docker.native_per_arch` |
 | GHCR 上出现 `unknown/unknown` | `docker.provenance` 被设为 `true`，改回 `false` |
 | smoke 永远失败 | `docker.smoke.expect` 没包含真实返回码（例如鉴权后的 403） |
-| `Dependencies lock file is not found` | 用了 `setup-go/setup-node` 的 `cache: true`：锁文件在 `vendor/<name>/` 而不在仓库根目录，它找不到。改用 `actions/cache` + `ub.py lockhash` |
+| `Dependencies lock file is not found` | 用了 `setup-go/setup-node` 的 `cache: true`：锁文件在 `upstream/<name>/` 而不在仓库根目录，它找不到。改用 `actions/cache` + `ub.py lockhash` |
 | 构建报「快照与目标 SHA 不一致」 | 正常自愈：会现场补同步。若持续失败，先手动跑一次 `sync` |
 | 推送被拒（non-fast-forward） | `sync` 与 `record` 会并发写 main；两者都用 `commit-and-push.sh`，内含 rebase 重试 |
 | 上游无变化却天天重建 | 上游提交频繁（cps 每天 1~13 次），给它加 `throttle.min_interval_hours` |

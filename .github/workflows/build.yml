@@ -144,10 +144,10 @@ jobs:
             echo "UB_METHOD=$BUILD_TYPE" >> "$GITHUB_ENV"
           fi
 
-      # 工具链：锁文件在 vendor/<name>/ 里而不在仓库根目录，setup-go / setup-node 的
+      # 工具链：锁文件在 upstream/<name>/ 里而不在仓库根目录，setup-go / setup-node 的
       # cache:true 只会去根目录找（找不到直接失败）。正确顺序：
       # 源码就绪 -> 算 lockfile 哈希 -> actions/cache -> 构建。
-      # setup-go 默认 cache:true 会去找仓库根目录的 go.sum（在 vendor/<name>/ 里找不到），
+      # setup-go 默认 cache:true 会去找仓库根目录的 go.sum（在 upstream/<name>/ 里找不到），
       # 所以必须显式关掉，改由下面的 actions/cache 按 lockfile 哈希缓存。
       - name: 安装 Go
         if: env.UB_LANGUAGE == 'go'
