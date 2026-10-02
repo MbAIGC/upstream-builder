@@ -35,8 +35,8 @@ docker pull ghcr.io/mbaigc/cline2api:v1.6.4
 
 | 文件 | 说明 |
 |---|---|
-| [go-upstream-builder-开发落地计划.md](go-upstream-builder-开发落地计划.md) | 原始方案（1230 行） |
-| [upstream-builder-可行性评审.md](upstream-builder-可行性评审.md) | 对原始方案的评审：实测结论 + 4 处必须先改的缺陷 |
+| [go-upstream-builder-开发落地计划.md](go-upstream-builder-开发落地计划.md) | 原始方案（1230 行）。**已就地标注 37 处落地变更**（【变更 N】，原文保留，附实测证据） |
+| [upstream-builder-可行性评审.md](upstream-builder-可行性评审.md) | 对原始方案的评审：实测结论 + 4 处必须先改的设计缺陷；含逐条变更索引 |
 
 ---
 

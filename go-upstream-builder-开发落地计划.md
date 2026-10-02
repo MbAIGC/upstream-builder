@@ -1,12 +1,50 @@
 # 多上游项目自动编译与 GHCR 镜像发布平台：开发落地计划
 
-**项目名称：** go-upstream-builder（暂定）\
-**项目类型：** 多仓库源码同步、自动构建、二进制发布与 Docker
-镜像发布平台\
-**主要运行环境：** GitHub Actions\
-**源码管理方式：** 所有上游项目直接存放在管理仓库根目录\
-**镜像仓库：** GitHub Container Registry（GHCR）\
+**项目名称：** go-upstream-builder（暂定）
+
+> **【变更 1】** 项目名为 **upstream-builder**（去掉 `go-` 前缀）——
+> 因为它从一开始就要支持 Go 以外的语言（见变更 7）。
+
+**项目类型：** 多仓库源码同步、自动构建、二进制发布与 Docker 镜像发布平台
+
+**主要运行环境：** GitHub Actions
+
+**源码管理方式：** 所有上游项目直接存放在管理仓库根目录
+
+> **【变更 2】** 改为 `upstream/<name>/` 命名空间目录，**不放在仓库根目录**。
+> 原因（已实测）：上游自带的 `.gitignore` 作用域是「所在目录及其所有子目录」，一个仓库根目录
+> 只能有一份 `.gitignore`，两个上游会互相覆盖，**结果取决于同步顺序**。实测
+> `luawei1/cline2api` 的 `.gitignore` 含 `*_test.go`，一旦它胜出，另一个项目的测试文件会
+> 静默消失，而 `go test ./...` 依然返回成功。放进各自子目录后互不干扰。
+
+**镜像仓库：** GitHub Container Registry（GHCR）
+
 **开发原则：** 配置驱动、最小侵入、模块化构建、失败隔离、可追踪、易维护
+
+> ## 📌 落地变更索引
+>
+> 本文是**原始方案**。实际实现（本仓库的 `upstream.json` + `scripts/` + `.github/workflows/`）
+> 与本文存在若干差异，已在对应位置用 **【变更 N】** 就地标注，**原文一律保留**。
+> 每条标注都附实测证据；完整论证见 [upstream-builder-可行性评审.md](upstream-builder-可行性评审.md)，
+> 使用方式见 [README.md](README.md)。原始版本可从 git 历史取回（提交 `5e001a8`）。
+>
+> | # | 变更 | 落到哪些章节 |
+> |---|---|---|
+> | 1 | 项目更名 `go-upstream-builder` → `upstream-builder` | 抬头 |
+> | 2 | **源码落库位置：仓库根目录 → `upstream/<name>/` 命名空间** | §一、§三、§四、§十六 |
+> | 3 | 目录结构：新增 `upstream/`、`docs/verification/`、`reports/upstream-state.json`；`dist/` 不进仓库 | §三 |
+> | 4 | 同步实现：原子替换、剔除上游 `.github/`、`git add -f`、`UPSTREAM.json`、SHA 未变不重写 | §四 |
+> | 5 | 状态文件的实际字段 | §4.4 |
+> | 6 | 配置 schema v1 → v2（两轴分类、targets、能力标志、smoke、throttle、assets） | §五 |
+> | 7 | 构建模式：四种模式 → `language` × `method` 两轴 + `cross_compile`；**§6.1 示例配置本身是错的** | §六 |
+> | 8 | 镜像发布机制：OCI archive + skopeo + 不可变标签晋升；`provenance:false`；镜像名必须小写 | §七 |
+> | 9 | Releases：默认关闭；tag 带项目前缀；已存在时只补缺失资产 | §八 |
+> | 10 | 工作流：Job 级权限、`actions: write`、`has_release` 门控、**build 不得重新决策** | §九 |
+> | 11 | 缓存：锁文件不在仓库根目录，必须 `actions/cache` + lockfile 哈希 | §十 |
+> | 12 | 错误处理与构建报告的实际字段 | §十一 |
+> | 13 | 安全：不可信 Job 只给 `contents: read`；归档解压做路径穿越防护 | §十二 |
+> | 14 | 首批两个项目的实测结论（含与本文示例不符之处） | §十三~十五、十七 |
+> | 15 | 验收清单逐条实际状态 | §十六 |
 
 ------------------------------------------------------------------------
 
@@ -21,6 +59,8 @@
 
 1.  根据配置拉取多个 GitHub 上游项目。
 2.  将上游源码直接同步到管理仓库根目录下对应的项目目录。
+
+> **【变更 2】** 同步目标是 `upstream/<项目名>/`，不是根目录下的同名目录。
 3.  检查上游版本和 Commit 是否发生变化。
 4.  根据每个项目独立的编译配置选择构建方式。
 5.  按项目配置编译 AMD64、ARM64 等目标架构。
@@ -116,6 +156,10 @@
 
 上游项目直接放在管理仓库根目录，不创建 upstream/ 源码目录。
 
+> **【变更 2 · 本条已被推翻】** 实际实现**正是** `upstream/<name>/`。
+> 本文当初禁止 `upstream/`，是为了避免「源码摊在仓库根目录」带来的问题；
+> 改成命名空间之后该问题已消除，而 `upstream/` 比 `vendor/` 更直观，故按需求采用。
+
 ``` text
 go-upstream-builder/
 ├── upstream.json
@@ -175,6 +219,11 @@ go-upstream-builder/
 
 **scripts/**
 
+> **【变更 3】** 实际脚本：`ub.py`（引擎）、`lib.sh`、`source-step.sh`、`commit-and-push.sh`、
+> `prepare.sh`、`build-native.sh`、`build-docker.sh`、`package.sh`、`publish-all.sh`、
+> `publish-image.sh`、`publish-release.sh`、`record-all.sh`、`run-project.sh`、`summarize.sh`。
+> 语言适配器集中在 `build-native.sh` 的 case 分支，新增语言不需要新增脚本。
+
 存放管理平台自身的脚本。所有脚本均由管理仓库维护，不混入上游项目。
 
 **adapters/**
@@ -187,9 +236,15 @@ go-upstream-builder/
 
 **dist/**
 
+> **【变更 3】** 产物落在 runner 的 `$RUNNER_TEMP/ub/dist`，**不进仓库**
+> （`dist/` 仅作为本地兜底的忽略项）。
+
 存放临时二进制文件和打包结果，不提交至管理仓库。
 
 **reports/**
+
+> **【变更 3】** 仓库里只有 `reports/upstream-state.json`（每个项目几百字节）。
+> 构建报告与逐条结果走 Actions Artifacts（`build-report`），不提交，避免仓库体积增长。
 
 存放构建报告。历史记录优先通过 GitHub Actions Artifacts
 保存，避免持续增大仓库体积。
@@ -199,6 +254,11 @@ go-upstream-builder/
 # 四、上游源码同步方案
 
 ## 4.1 同步方式
+
+> **【变更 4】** 实现为「按 SHA 下载 codeload tar.gz → 解压到临时目录校验 → 原子替换 `upstream/<name>/`」。
+> 地址是 `https://codeload.github.com/<repo>/tar.gz/<sha>`（带 token 与不带 token 实测内容一致，
+> `tree_sha256` 相同）。解压做了**路径穿越防护**（拒绝绝对路径、`..`、指向外部的软硬链接）——
+> 上游是外部输入。
 
 默认采用源码快照同步，而不是在管理仓库中嵌套多个 Git 仓库。
 
@@ -212,6 +272,10 @@ go-upstream-builder/
 默认不会跟踪其中的实际源码文件，容易产生空目录、子模块和同步异常问题。
 
 ## 4.2 同步流程
+
+> **【变更 4】** 实际流程：解析 ref → SHA → 与 `upstream/<name>/UPSTREAM.json` 里的 SHA 比对 →
+> 相同则**完全不重写**（避免无意义提交）→ 不同则下载、剔除 `.github/`、写 `UPSTREAM.json`、
+> **先备份旧目录再原子替换**（失败回滚，旧源码保留）→ 提交 → 显式 dispatch 构建。
 
 1.  读取项目的 `repo`、`ref` 和 `name`。
 2.  获取指定分支或 Tag 的最新 Commit SHA。
@@ -228,6 +292,10 @@ go-upstream-builder/
 
 ## 4.3 同步保护规则
 
+> **【变更 4】** 命名空间布局天然满足大部分保护要求（不会覆盖管理脚本与其它项目）。
+> 另外两件事本文没写：剔除上游 `.github/`（否则上游的 workflow 会变成本仓库的 workflow 被执行），
+> 以及把剔除动作记进 `UPSTREAM.json` 的 `stripped` 字段 —— **构建输入的任何改写都可见**。
+
 -   禁止删除管理仓库自身的
     `.github/`、`scripts/`、`adapters/`、`docker/`、`dist/`。
 -   禁止项目名称使用 `.`、`..`、绝对路径或包含路径穿越的名称。
@@ -240,6 +308,13 @@ go-upstream-builder/
 -   为每次同步记录原 SHA、新 SHA、同步时间和同步结果。
 
 ## 4.4 上游版本记录
+
+> **【变更 5】** 实际状态文件 `reports/upstream-state.json`，逐项目记录：
+> `repo` / `ref` / `resolved_sha` / `resolved_version` / `last_synced_sha` / `last_synced_at` /
+> `last_successful_build_sha` / `last_successful_build_at` / `last_build_attempt_at` /
+> `last_build_attempt_sha` / `build_status` / `last_error` / `image` / `image_digest` /
+> `platforms` / `release_tag`。同步状态与构建状态分开记录（本文要求），
+> 且**记录的摘要与 GHCR 上实际 digest 实测完全一致**。
 
 建立统一的状态文件，例如 `reports/upstream-state.json`，或在 GitHub
 Actions Artifact 中保存。
@@ -267,6 +342,10 @@ Actions Artifact 中保存。
 
 ## 5.1 顶层配置
 
+> **【变更 6】** schema `version` 为 **2**。实际顶层：`defaults.targets`、
+> `defaults.runners`（按架构选 runner，原生 arm 路径用）、`defaults.continue_on_error`、
+> `sync.layout`（`repo` 落库 / `none` 现场下载）、`sync.upstream_dir`、`sync.state_file`、`projects[]`。
+
 ``` json
 {
   "version": 1,
@@ -292,6 +371,15 @@ Actions Artifact 中保存。
   defaults.continue_on_error   单项目失败后是否继续其他项目
 
 ## 5.2 项目配置字段
+
+> **【变更 6/7】** `build.type` 被拆成正交两轴：
+> `build.language`（`go`/`python`/`node`/`rust`/`none`）× `build.method`（`native`/`dockerfile`/`custom`），
+> 外加能力标志 `build.cross_compile`。原因是原 `go|dockerfile|custom` 三个值**不在同一维度**，
+> 加入 Python 后会退化成打补丁。
+> 另外新增/调整：`ref` 改为对象 `{type, value}`、`version_source`、
+> `build.assets[]`（架构无关的准备步骤，只跑一次）、`build.test.required`、
+> `docker.native_per_arch`、`docker.tags`、`docker.smoke`、`release.tag_strategy`、
+> `throttle.min_interval_hours`。
 
 每个项目至少包含：
 
@@ -333,6 +421,10 @@ Actions Artifact 中保存。
 
 ## 5.3 配置校验
 
+> **【变更 6】** 校验器还会拦住**矛盾声明**，例如 Python 项目声明多架构却 `cross_compile=true`：
+> `python 无法交叉编译出多架构产物，声明 cross_compile=true 但 targets 含 ['amd64','arm64']；
+> 必须改为 false 并使用原生 runner`。未知字段、非法相对路径、`ghcr.io` 之外的镜像名一律直接报错。
+
 在同步和编译前运行配置校验器。
 
 必须检查：
@@ -361,7 +453,21 @@ Dockerfile 都会编译源码。
 
 第一版采用四种构建模式。
 
-## 6.1 模式 A：Go 直接编译
+> **【变更 7】** 实际不是「四种模式」，而是 **`language` × `method` 正交组合 + 能力标志**：
+> - `native`：Go/Rust 可交叉编译（一个 amd64 runner 出多架构）；Python/Node 的冻结产物
+>   **不能**交叉编译，矩阵会自动按架构拆到原生 runner（`ubuntu-24.04-arm`，仅公共仓库可用）。
+> - `dockerfile`：用上游 Dockerfile（即本文模式 B）。
+> - `custom`：适配器脚本（即本文模式 D）。
+> 本文模式 C（平台生成 Dockerfile）只实现了 Go（`docker/Dockerfile.go`）。
+> 还要分清：二进制的 `build.cross_compile` 与镜像的 `docker.native_per_arch` 是**两件事**。
+
+## 6.1 模式 A
+
+> **【变更 7 · 本节示例配置是错的】** 示例里 `"package": "."` 对
+> `Hxjcc/cline-pass-switcher-go` **会失败**：实测报 `no Go files in /src`，
+> 真实入口是 `./cmd/cline-pass-switcher`。校验器现在强制 `build.package` 必填。
+> 另：`cline2api` 的 `go build .` 之所以成立，是因为它的 `main.go` 带 `//go:build !desktop`
+> （wails/CGO 不参与服务端构建）—— 这类结论只能靠真跑得出。：Go 直接编译
 
 适用条件：
 
@@ -407,7 +513,13 @@ Dockerfile 都会编译源码。
 -   使用 CGO 的项目需要额外的交叉编译工具链。
 -   编译成功不代表程序一定能正常运行。
 
-## 6.2 模式 B：使用上游 Dockerfile
+## 6.2 模式 B
+
+> **【变更 8】** 实测两个上游的 Dockerfile **一行不改**即可构建：
+> cline2api v1.6.4 用 121s / 29.6MB，cps main 用 183s / 29.3MB。
+> 但「运行基础镜像检查」**不能猜路径**：cps 的控制台需鉴权，`GET /` 返回 **403**，
+> 按「200 才算通过」实现会永远失败。所以 `docker.smoke` 必须显式给出
+> `container_port` + `path` + `expect`（支持状态码数组，写 `[200,403]`）。：使用上游 Dockerfile
 
 适用条件：
 
@@ -453,7 +565,13 @@ Docker 配置：
 可能只是下载已经编译好的二进制，也可能包含前端构建、静态文件复制和启动脚本。因此应保留其原始构建逻辑，不得默认替换为统一
 Go Dockerfile。
 
-## 6.3 模式 C：平台生成 Dockerfile
+## 6.3 模式 C
+
+> **【变更 7/8】** 只实现了 Go 模板。实现时踩到一个坑并已规避：
+> exec 形式的 `ENTRYPOINT` **不做变量替换**，用 `${APP_BINARY}` 拼路径会得到指向字面量的
+> 坏 ENTRYPOINT，故固定安装为 `/usr/local/bin/app`。
+> 另外该模式会丢掉上游 Dockerfile 里的行为（例如 cps 的 `docker-entrypoint.sh` 要做
+> PUID/PGID 降权），所以能用 `upstream` 就别用 `generated`。：平台生成 Dockerfile
 
 适用条件：
 
@@ -486,7 +604,10 @@ Go Dockerfile。
 
 如果项目依赖配置模板、证书、静态文件或外部资源，则必须通过额外配置明确纳入镜像。
 
-## 6.4 模式 D：自定义构建脚本
+## 6.4 模式 D
+
+> **【变更 13】** 适配器约定见 `adapters/README.md`。关键点：脚本运行在**只有 `contents: read`**
+> 的 Job 里，脚本里即使写了 `docker push` 也会因缺少凭据而失败 —— 这是设计如此，不是缺陷。：自定义构建脚本
 
 适用条件：
 
@@ -551,6 +672,13 @@ Go Dockerfile。
 
 ## 7.2 镜像标签规则
 
+> **【变更 8】** 实际机制：每次构建先推**不可变**标签 `sha-<7位commit>`，架构清单校验通过后，
+> 再用 `skopeo copy` / `docker buildx imagetools create` 把 `latest`（及上游有正式版本时的
+> `v1.6.4`）**晋升**到同一个 digest，并复核晋升后 digest 一致。因此 `latest` 永远指向已验证过的
+> digest，且发布阶段**不重新构建**。
+> 两条本文没写：`provenance: false`（否则 GHCR 出现 `unknown/unknown` 架构条目），
+> 以及镜像名必须**全小写**（owner 为 `MbAIGC` 时 buildx 直接报 `repository name must be lowercase`）。
+
 建议支持以下标签：
 
 -   `latest`：最近一次成功构建的稳定指向。
@@ -573,6 +701,12 @@ Go Dockerfile。
 
 ## 7.3 多架构镜像
 
+> **【变更 8】** 实测两个项目都成功产出 `linux/amd64` + `linux/arm64` 的 manifest list，
+> 且发布前**强制校验实际架构清单**与配置一致，不符则拒绝晋升（本文要求，已落地）。
+> 架构有两条路径：`docker.native_per_arch: false`（一个 amd64 runner + QEMU，默认）与 `true`
+> （每个架构一个原生 runner，发布时用 `imagetools create` 合成 manifest list）。
+> 带前端构建的项目走 QEMU 明显更慢且易 OOM，这时应改用原生 arm runner。
+
 默认支持：
 
 -   `linux/amd64`
@@ -593,6 +727,11 @@ Go Dockerfile。
     命令执行成功就宣称支持多架构。
 
 ## 7.4 GHCR 权限
+
+> **【变更 10/13】** 权限是 **Job 级**的：跑上游代码的构建 Job 只有 `contents: read`；
+> 镜像经 **OCI archive** 传给发布 Job，由它用 `packages: write` 推送，发布 Job 不执行任何上游代码。
+> 另：同步/记录 Job 需要 `actions: write` 才能 `gh workflow run`
+> （`GITHUB_TOKEN` 推送产生的事件**不会**触发其它 workflow）。
 
 GitHub Actions 使用仓库提供的 `GITHUB_TOKEN` 和必要的工作流权限。
 
@@ -623,6 +762,10 @@ Token。应将构建和发布拆分为不同 Job：
 发布 Job 不执行上游提供的构建脚本。
 
 ## 7.5 GHCR 可见性
+
+> **【变更 8】** 实测：仓库级 package 会**继承仓库可见性**，本仓库是 public，
+> 所以两个镜像自动是 public，无需手动设置。只有仓库为私有时才需要按本节人工处理
+> （`GITHUB_TOKEN` 无法可靠地自动修改可见性）。
 
 镜像创建后，应明确设置或检查其可见性。
 
@@ -683,6 +826,12 @@ dist/
 
 ## 8.4 发布规则
 
+> **【变更 9】** 现状：`release.enabled` 全部为 `false`，**当前不发 Release**，只发镜像；
+> `plan` 会输出 `has_release`，该 Job 直接跳过、不占 runner。
+> 两点本文没写：Release 是**仓库级**命名空间，N 个项目共用一个仓库时 tag 必须带项目前缀
+> （`cline2api/v1.6.4`、`cline-pass-switcher-go/rolling`）；已存在时**只补缺失资产**、
+> 不覆盖正式版本，只有 `rolling-prerelease` 策略才用 `--clobber`。四种情形已用 `gh` 桩逐一验证。
+
 -   不覆盖已有的正式 Release。
 -   同一版本重复执行时，不应造成重复资产或不可预测的覆盖。
 -   默认不创建上游没有对应版本依据的正式版本。
@@ -695,7 +844,11 @@ dist/
 
 建议拆分为三个工作流。
 
-## 9.1 sync.yml：定时同步
+## 9.1 sync.yml
+
+> **【变更 10】** 实际步骤：校验配置 → 解析 ref/SHA 并决策 → 同步快照到 `upstream/` →
+> `commit-and-push.sh`（提交快照与状态，带 rebase 重试，因为 record Job 可能同时在写 main）→
+> 显式 `gh workflow run build.yml`，并把本次 SHA 作为 `pins` 传下去。定时用 `17 3 * * *`（避开整点排队）。：定时同步
 
 触发方式：
 
@@ -731,7 +884,13 @@ dist/
 事件一定启动构建。应使用同一工作流内的后续 Job，或者通过明确授权的
 `workflow_dispatch` 等方式调度构建。
 
-## 9.2 build.yml：构建和发布
+## 9.2 build.yml
+
+> **【变更 10】** 实际是 5 个 Job：`plan` / `build`（矩阵，`max-parallel: 3`、`fail-fast: false`）/
+> `publish-image` / `publish-release`（由 `has_release` 门控）/ `record`。
+> 一条关键点本文没写：**build 阶段不能重新做决策**。sync 可能用 `--force` 判定要构建并把 SHA 固定成
+> `pins` 传下来；build 若再按节流规则判一遍，就会出现「sync 决定构建、build 却把它节流掉」的
+> 静默丢任务（实测 cps 就这样被丢过一次）。现在带 pin 的项目直接构建（原因记为 `pinned`）。：构建和发布
 
 触发方式：
 
@@ -759,7 +918,11 @@ dist/
 如果项目 A 失败，项目 B 和项目 C
 仍应继续构建。最终工作流可以报告部分失败，但不能把部分失败伪装成全部成功。
 
-## 9.3 manual-build.yml：手动构建入口
+## 9.3 manual-build.yml
+
+> **【变更 10】** 实际是一个很薄的转发入口（把 `platforms`/`build_type` 等参数转发给 `build.yml`），
+> 让人工入口的参数名与本文一致，同时保持 `build.yml` 的输入契约稳定。
+> 手动覆盖会打印 `::warning::` 明确记录，不静默改变仓库里的正式配置（本文要求）。：手动构建入口
 
 支持以下参数：
 
@@ -800,6 +963,13 @@ SHA，以便下次重试。
 
 ## 10.2 缓存策略
 
+> **【变更 11】** 缓存键必须用**锁文件哈希**，但锁文件在 `upstream/<name>/` 而**不在仓库根目录** ——
+> `setup-go` / `setup-node` 的 `cache: true` 只去根目录找，会直接失败。
+> 因此顺序固定为：源码就绪 → `ub.py lockhash`（按语言匹配 `go.sum` / `package-lock.json` /
+> `requirements.txt` / `uv.lock` / `Cargo.lock`）→ `actions/cache`。
+> 另一个坑：`setup-node` 不能写 `cache: false`（会被当成包管理器名，报
+> `Caching for 'false' is not supported`）。
+
 Go 项目可缓存：
 
 -   Go 模块下载缓存。
@@ -816,6 +986,9 @@ Docker 构建可缓存：
 不得因为缓存命中就跳过必要的发布前检查。
 
 ## 10.3 并行构建
+
+> **【变更 11】** 实际 `max-parallel: 3`；同一项目的多个 entry 通过「不可变 sha 标签 + 校验后晋升」
+> 与 `concurrency` 组避免重复发布。
 
 允许多个项目并行构建，但需要限制最大并发数量。
 
@@ -846,6 +1019,14 @@ Docker 构建可缓存：
   所有项目失败       工作流最终状态为失败
 
 ## 11.2 构建报告
+
+> **【变更 12】** 实际报告字段：`run_id` / `started_at` / `finished_at` / `project_count` /
+> `failed_count` / `projects[]`；每项含 `entry` / `name` / `sha` / `version` / `language` /
+> `method` / `runner` / `targets` / `docker_targets` / `image` / `image_digest` / `release_tag` /
+> `packages` / `has_image` / `status` / `error`（**失败步骤名**）。报告作为 Artifact（`build-report`）
+> 保留，不提交仓库。
+> 一条实测教训：发布元数据最初两个项目写同一个 `published.json` 会互相覆盖，导致镜像摘要丢失；
+> 现已改为 `published-<name>.json` 并按项目名索引。
 
 每次执行生成报告，至少包含：
 
@@ -893,6 +1074,12 @@ Docker 构建可缓存：
 
 ## 12.1 构建隔离
 
+> **【变更 13】** 落地要点：跑上游代码的 Job 只给 `contents: read`；发布 Job 只接受 OCI archive、
+> 不执行上游脚本；归档解压做路径穿越防护；所有 `permissions` 都写在 **Job 级**而非 workflow 级。
+> 必须说清一条边界：本文「禁止自动执行上游提供的安装脚本或任意代码」**按字面做不到** ——
+> Dockerfile 的 `RUN`、`go test`、`npm ci` 的 postinstall 都是执行上游代码。
+> 正确表述是「**执行上游代码的 Job 不持有写权限**」。
+
 -   不在长期运行的自托管主机上直接执行不可信上游脚本。
 -   默认使用隔离的 GitHub-hosted Runner。
 -   每次构建使用临时工作环境。
@@ -919,6 +1106,11 @@ Docker 构建可缓存：
 ------------------------------------------------------------------------
 
 # 十三、分阶段实施计划
+
+> **【变更 14】** 阶段一~七均已落地，并且坚持了「先跑通两个真实项目再补能力」：
+> 配置系统与骨架 → 同步与路径保护 → Go 构建器 → 镜像构建（OCI archive + 晋升）→
+> 工作流串联 → 安全与稳定性。Release（阶段五）已实现但**按需求关闭**。
+> 实际顺序与 §十七 基本一致，唯一调整是把「自定义构建适配器」放到最后。
 
 ## 阶段一：项目骨架和配置系统
 
@@ -1081,6 +1273,9 @@ Docker 构建可缓存：
 
 # 十四、第一版明确不做的功能
 
+> **【变更 14】** 这些仍然不做。补充一条边界：Windows/macOS 的**二进制**目标已支持交叉编译，
+> 但 cline2api 的桌面版（wails/CGO）无法交叉编译，需要各平台原生 runner —— 本平台不处理。
+
 为了避免项目初期过度复杂，以下功能暂不纳入第一版：
 
 1.  自动修改上游业务代码。
@@ -1099,6 +1294,16 @@ Docker 构建可缓存：
 ------------------------------------------------------------------------
 
 # 十五、第一批项目的实施策略
+
+> **【变更 14 · 实测结论】** 两个项目都已完整跑通（同步 → 构建 → 多架构镜像 → 发布）。
+> 与本文预期的差异：
+> - **项目 A**：入口是 `./cmd/cline-pass-switcher`（不是 `.`）；`web/` 前端产物已提交在
+>   `internal/webassets/dist`，但上游 CI 会校验它与源码一致，所以 `build.assets` 仍应跑前端构建；
+>   **0 个 tag / 0 个 release**，因此 `version_source: sha`；每天 1~13 次提交，必须加
+>   `throttle.min_interval_hours: 24`，否则天天重建。
+> - **项目 B**：`ref.type: release-latest` + `version_source: tag`（上游有 `v1.6.4` 等正式版本）；
+>   服务端可脱离 wails/CGO 构建（`main.go` 有 `//go:build !desktop`）。
+> - 两个上游根目录**都自带 `.gitignore`**，这正是「源码不能放仓库根目录」的直接原因（变更 2）。
 
 建议首先登记以下两个真实项目：
 
@@ -1156,6 +1361,20 @@ Dockerfile，或者两种模式同时启用。
 
 # 十六、最终验收清单
 
+> **【变更 15】** 逐条实际状态：
+> - **配置与同步**：`upstream.json` 唯一入口 ✓；多项目独立同步 ✓；上游无变化不产生提交 ✓
+>   （实测 `keep`）；同步失败保留旧源码 ✓（先备份再原子替换）；
+>   **「不创建 upstream/ 源码目录」已按需求改为相反**（见变更 2）。
+> - **编译**：Go 直接编译 ✓；上游 Dockerfile ✓；自定义脚本 ✓（骨架就绪）；生成 Dockerfile
+>   仅 Go ✓；按项目选目标架构 ✓；产物统一输出 ✓；项目互不影响 ✓（`fail-fast: false`）。
+> - **GHCR**：一项目一镜像 ✓；自动认证推送 ✓；amd64+arm64 ✓（实测 manifest list）；
+>   项目独立标签 ✓；失败不覆盖正式标签 ✓（先推 sha 标签，校验通过才晋升）；
+>   镜像摘要已记录 ✓（与 GHCR 实际值一致）；可见性 ✓（public 仓库自动继承）。
+> - **Releases**：已实现但因需求关闭；按架构打包、SHA256SUMS、记录上游 SHA 均已验证。
+> - **自动化与安全**：每日定时 ✓；手动单项目/全量 ✓；增量 ✓；失败隔离与报告 ✓；
+>   构建环境不持有发布凭据 ✓（Job 级权限 + OCI archive 中转）；发布不执行上游脚本 ✓；
+>   并发/超时/清理 ✓（`max-parallel`、`concurrency`、`$RUNNER_TEMP`）。
+
 ## 配置和源码同步
 
 -   [ ] 所有上游项目均在管理仓库根目录。
@@ -1208,6 +1427,10 @@ Dockerfile，或者两种模式同时启用。
 ------------------------------------------------------------------------
 
 # 十七、最终实施顺序
+
+> **【变更 14】** 实际顺序：配置与骨架 → 同步（落库 + 保护）→ Go 构建器 → 上游 Dockerfile →
+> 镜像发布（含架构校验与标签晋升）→ 工作流串联与增量 → 安全加固 → 自定义适配器（最后）。
+> Release 已实现但关闭；Python 适配器已实现并验证了矩阵按架构展开。
 
 严格按照以下顺序开发：
 
