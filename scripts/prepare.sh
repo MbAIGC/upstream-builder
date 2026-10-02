@@ -4,8 +4,9 @@
 # 关键点：源码只落在 $RUNNER_TEMP 下，永远不进管理仓库。
 set -euo pipefail
 
-UB_SRC="${UB_SRC:?UB_SRC 未设置}"
 source "$(dirname "$0")/lib.sh"
+export UB_REPO_ROOT="${UB_REPO_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
+ub_init_paths
 
 group "取上游源码快照 (layout=none，不落库)"
 log "项目=$UB_NAME  上游=$UB_REPO  sha=$UB_SHA"

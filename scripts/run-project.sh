@@ -8,11 +8,7 @@ source "$(dirname "$0")/lib.sh"
 
 : "${UB_NAME:?}" "${UB_ENTRY:?}"
 export UB_REPO_ROOT="${UB_REPO_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
-export UB_WORK="${UB_WORK:-${RUNNER_TEMP:-/tmp}/ub}"
-export UB_SRC="$UB_WORK/src/$UB_NAME"
-export UB_DIST="$UB_WORK/dist"
-export UB_OUT="${UB_OUT:-$UB_WORK/out-$UB_ENTRY}"
-mkdir -p "$UB_WORK/src" "$UB_DIST" "$UB_OUT"
+ub_init_paths
 
 # 矩阵条目可以收窄目标集合（原生 arm runner 路径：每个 entry 只做一个架构）
 [ -n "${UB_ENTRY_TARGETS:-}" ] && export UB_BUILD_TARGETS="$UB_ENTRY_TARGETS"

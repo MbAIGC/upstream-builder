@@ -732,7 +732,10 @@ def cmd_env(args):
     st = load_state(state_path(cfg, args.state))
     rec = st["projects"].get(proj["name"], {})
     sha = args.sha or rec.get("resolved_sha") or ""
-    version = args.version or rec.get("resolved_version") or (sha[:7] if sha else "dev")
+    if not sha:
+        die(f"{proj['name']}: 拿不到上游 SHA。请先用 `ub.py plan` 解析并写入状态，"
+            f"或显式传 --sha（否则会去打一个 404 的 codeload 地址）")
+    version = args.version or rec.get("resolved_version") or sha[:7]
     owner = args.owner or os.environ.get("UB_OWNER") or os.environ.get("GITHUB_REPOSITORY_OWNER") or "owner"
 
     build = proj.get("build", {})

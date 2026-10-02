@@ -43,6 +43,17 @@ if [ -z "${UB_LIB_LOADED:-}" ]; then
 
   ub_python() { python3 "${UB_REPO_ROOT:?UB_REPO_ROOT 未设置}/scripts/ub.py" "$@"; }
 
+  # 工作目录的唯一来源。工作流里 fetch 与 build 是两个步骤，
+  # 如果各自算一遍路径就会漂移（UB_SRC 未设置就是这么炸的）。
+  # 已有的值优先复用，便于工作流通过 $GITHUB_ENV 传入。
+  ub_init_paths() {
+    export UB_WORK="${UB_WORK:-${RUNNER_TEMP:-/tmp}/ub}"
+    export UB_SRC="${UB_SRC:-$UB_WORK/src/${UB_NAME:?UB_NAME 未设置}}"
+    export UB_DIST="${UB_DIST:-$UB_WORK/dist}"
+    export UB_OUT="${UB_OUT:-$UB_WORK/out-${UB_ENTRY:-$UB_NAME}}"
+    mkdir -p "$UB_WORK/src" "$UB_DIST" "$UB_OUT"
+  }
+
   # 展开 build.native_command 里的占位符
   expand_cmd() {
     local cmd="$1" os="$2" arch="$3" outdir="$4"

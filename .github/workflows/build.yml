@@ -146,6 +146,8 @@ jobs:
       # 工具链：注意本设计源码不落库，checkout 时仓库里没有 go.sum / package-lock.json，
       # 所以不能用 setup-go/setup-node 的 cache:true（找不到锁文件会直接失败）。
       # 正确顺序：先取源码 -> 算 lockfile 哈希 -> actions/cache -> 构建。
+      # setup-go 默认 cache: true，会去找仓库根目录的 go.sum —— 源码不落库时找不到，
+      # 直接失败。所以必须显式关掉，改由下面的 actions/cache 用 lockfile 哈希缓存。
       - name: 安装 Go
         if: env.UB_LANGUAGE == 'go'
         uses: actions/setup-go@v5
@@ -153,27 +155,24 @@ jobs:
           go-version: ${{ env.UB_GO_VERSION }}
           cache: false
 
+      # 注意：不要写 cache: false —— setup-node 会把字符串 "false" 当成包管理器名，
+      # 直接报 "Caching for 'false' is not supported"。依赖缓存统一交给下面的 actions/cache。
       - name: 安装 Node
         if: env.UB_NEEDS_NODE == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.UB_NODE_VERSION }}
-          cache: false
 
       - name: 安装 Python
         if: env.UB_NEEDS_PYTHON == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.UB_PYTHON_VERSION }}
-          cache: false
 
       - name: 预取源码（用于计算依赖锁文件哈希）
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          export UB_FETCH_ONLY=true
-          bash scripts/prepare.sh
+        run: bash scripts/fetch-only.sh
 
       - name: 计算依赖锁文件哈希
         id: lock
