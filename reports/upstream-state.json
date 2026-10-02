@@ -1,5 +1,28 @@
 {
-  "version": 1,
-  "updated_at": null,
-  "projects": {}
+  "projects": {
+    "cline-pass-switcher-go": {
+      "build_status": "failure",
+      "last_build_attempt_at": "2026-10-02T15:10:58Z",
+      "last_build_attempt_sha": "feb3fa342260a89d58268a2e3de257587b284f1b",
+      "last_error": "失败步骤: build-docker",
+      "last_synced_sha": "feb3fa342260a89d58268a2e3de257587b284f1b",
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ]
+    },
+    "cline2api": {
+      "build_status": "failure",
+      "last_build_attempt_at": "2026-10-02T15:10:58Z",
+      "last_build_attempt_sha": "5b60a67fc570e26da6f50b5c055c4870fe450f1c",
+      "last_error": "失败步骤: build-docker",
+      "last_synced_sha": "5b60a67fc570e26da6f50b5c055c4870fe450f1c",
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ]
+    }
+  },
+  "updated_at": "2026-10-02T15:10:58Z",
+  "version": 1
 }
