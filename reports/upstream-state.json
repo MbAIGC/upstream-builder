@@ -3,11 +3,11 @@
     "cline-pass-switcher-go": {
       "build_status": "success",
       "image": "ghcr.io/mbaigc/cline-pass-switcher-go",
-      "image_digest": "sha256:4e39618a0bd626927c8a0b719dc1c0bf9161705dcf2070e52aa5b258e27bdd99",
-      "last_build_attempt_at": "2026-10-02T16:01:49Z",
+      "image_digest": "sha256:15304ba62ae43a1113d75728f8f912167726538f20c753332c4ff0ef72c19cba",
+      "last_build_attempt_at": "2026-10-02T16:27:45Z",
       "last_build_attempt_sha": "feb3fa342260a89d58268a2e3de257587b284f1b",
       "last_decision": "up-to-date",
-      "last_successful_build_at": "2026-10-02T16:01:49Z",
+      "last_successful_build_at": "2026-10-02T16:27:45Z",
       "last_successful_build_sha": "feb3fa342260a89d58268a2e3de257587b284f1b",
       "last_synced_at": "2026-10-02T16:17:11Z",
       "last_synced_sha": "feb3fa342260a89d58268a2e3de257587b284f1b",
@@ -27,11 +27,11 @@
     "cline2api": {
       "build_status": "success",
       "image": "ghcr.io/mbaigc/cline2api",
-      "image_digest": "sha256:05a54c3785bebd035a28089bd12ab838920494b3af1bc46c2d7f1a043b61e61e",
-      "last_build_attempt_at": "2026-10-02T16:01:49Z",
+      "image_digest": "sha256:7de951fc7f3467a2687c133bfb78bb732b9138cfad7ccb215e74d1f2bf91c0a3",
+      "last_build_attempt_at": "2026-10-02T16:27:45Z",
       "last_build_attempt_sha": "5b60a67fc570e26da6f50b5c055c4870fe450f1c",
       "last_decision": "up-to-date",
-      "last_successful_build_at": "2026-10-02T16:01:49Z",
+      "last_successful_build_at": "2026-10-02T16:27:45Z",
       "last_successful_build_sha": "5b60a67fc570e26da6f50b5c055c4870fe450f1c",
       "last_synced_at": "2026-10-02T16:17:11Z",
       "last_synced_sha": "5b60a67fc570e26da6f50b5c055c4870fe450f1c",
@@ -48,6 +48,6 @@
       "resolved_version": "v1.6.4"
     }
   },
-  "updated_at": "2026-10-02T16:17:11Z",
+  "updated_at": "2026-10-02T16:27:45Z",
   "version": 1
 }
