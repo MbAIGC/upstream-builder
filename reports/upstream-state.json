@@ -4,25 +4,42 @@
       "build_status": "failure",
       "last_build_attempt_at": "2026-10-02T15:10:58Z",
       "last_build_attempt_sha": "feb3fa342260a89d58268a2e3de257587b284f1b",
+      "last_decision": "force",
       "last_error": "失败步骤: build-docker",
+      "last_synced_at": "2026-10-02T15:18:47Z",
       "last_synced_sha": "feb3fa342260a89d58268a2e3de257587b284f1b",
       "platforms": [
         "linux/amd64",
         "linux/arm64"
-      ]
+      ],
+      "ref": {
+        "type": "branch",
+        "value": "main"
+      },
+      "repo": "https://github.com/Hxjcc/cline-pass-switcher-go",
+      "resolved_sha": "feb3fa342260a89d58268a2e3de257587b284f1b",
+      "resolved_version": "feb3fa3"
     },
     "cline2api": {
       "build_status": "failure",
       "last_build_attempt_at": "2026-10-02T15:10:58Z",
       "last_build_attempt_sha": "5b60a67fc570e26da6f50b5c055c4870fe450f1c",
+      "last_decision": "force",
       "last_error": "失败步骤: build-docker",
+      "last_synced_at": "2026-10-02T15:18:47Z",
       "last_synced_sha": "5b60a67fc570e26da6f50b5c055c4870fe450f1c",
       "platforms": [
         "linux/amd64",
         "linux/arm64"
-      ]
+      ],
+      "ref": {
+        "type": "release-latest"
+      },
+      "repo": "https://github.com/luawei1/cline2api",
+      "resolved_sha": "5b60a67fc570e26da6f50b5c055c4870fe450f1c",
+      "resolved_version": "v1.6.4"
     }
   },
-  "updated_at": "2026-10-02T15:10:58Z",
+  "updated_at": "2026-10-02T15:18:47Z",
   "version": 1
 }
