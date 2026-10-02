@@ -228,7 +228,8 @@ git add -A 后 tracked *_test.go：81 个（全部提交）
 计划书 §十七 的顺序基本合理，按上面的评审调整如下：
 
 1. **配置系统 + 骨架**（`upstream.json` v2：三轴 + target 对象 + 能力标志 + 校验器）
-2. **同步器**（默认「不落库」：按 SHA 下载 → 校验 → 记 state；`vendor/` 模式作为可选布局）
+2. **同步器**（默认 `layout: "vendor"`：按 SHA 下载 → 校验 → 原子替换 `vendor/<name>/` → 记 provenance；
+   `layout: "none"` 作为可选布局，两种布局下构建脚本一致）
 3. **Go 适配器**（交叉编译 + `assets` 阶段分离；`package` 路径必须从配置读，别学 §6.1 的示例）
 4. **Docker 构建 + OCI archive 传递 + staging tag 晋升**（把「构建」和「发布」拆成两个 Job，权限按 §3.2）
 5. **GHCR 发布**（`provenance: false`；可见性人工步骤）
@@ -322,8 +323,8 @@ git add -A 后 tracked *_test.go：81 个（全部提交）
 
 1. `throttle.min_interval_hours` —— cps 每天 1~13 次提交，没有节流就会天天重建。
 2. `build.assets[]` —— 架构无关的前端构建只跑一次，而不是每个架构重复跑（QEMU 下尤其致命）。
-3. `ub.py lockhash` —— 因为源码不落库，`setup-go/setup-node` 的 `cache: true` 会因找不到
-   `go.sum`/`package-lock.json` 直接失败，必须改成"先取源码 → 算哈希 → actions/cache"。
+3. `ub.py lockhash` —— 锁文件在 `vendor/<name>/` 而不在仓库根目录，
+   `setup-go`/`setup-node` 的 `cache: true` 只会去根目录找（找不到直接失败），必须改成"源码就绪 → 算哈希 → actions/cache"。
 4. `record` 阶段区分 `last_synced_sha` 与 `last_successful_build_sha`（计划 §10.1 要求），
    并保证部分失败在报告与 workflow 状态里都如实体现。
 

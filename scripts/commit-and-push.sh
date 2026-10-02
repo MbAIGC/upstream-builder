@@ -47,7 +47,10 @@ for i in 1 2 3 4 5; do
     exit 0
   fi
   log "推送被拒（可能另一条 workflow 同时在写），rebase 后重试 #$i"
-  git pull --rebase --autostash origin "$branch" || true
+  if ! git pull --rebase --autostash origin "$branch"; then
+    git rebase --abort >/dev/null 2>&1 || true
+    die "rebase 失败：本地有与远端冲突的改动（例如未跟踪的 vendor/）。清理后重试。"
+  fi
   sleep 3
 done
 die "推送失败（重试 5 次）"

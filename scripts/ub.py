@@ -817,6 +817,10 @@ def cmd_plan(args):
         else:
             sha, version = resolve_ref(proj, token)
 
+        # pins 是 sync 已经做出的决策（它可能用了 --force）。build 阶段必须照做，
+        # 不能重新按节流规则判一遍，否则会出现「sync 决定构建、build 却把它节流掉」
+        # 这种静默丢任务的情况。
+        pinned = name in pins and bool(pins[name])
         prev = rec.get("last_synced_sha")
         rec.update({
             "repo": proj["repo"],
@@ -826,7 +830,9 @@ def cmd_plan(args):
             "last_synced_sha": sha,
             "last_synced_at": now_iso(),
         })
-        need, reason = _needs_build(proj, rec, sha, args.force)
+        need, reason = _needs_build(proj, rec, sha, args.force or pinned)
+        if pinned and reason == "force":
+            reason = "pinned"
         rec["last_decision"] = reason
         summary.append({"name": name, "sha": sha[:12], "version": version,
                         "changed": prev != sha, "build": need, "reason": reason})

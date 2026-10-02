@@ -5,6 +5,11 @@
 if [ -z "${UB_LIB_LOADED:-}" ]; then
   UB_LIB_LOADED=1
 
+  # 仓库根目录在 load 时就解析好：发布/记录 Job 不经过 run-project.sh，
+  # 之前 ub_python 依赖外部传入 UB_REPO_ROOT，导致 publish-image.sh 直接报未设置。
+  UB_REPO_ROOT="${UB_REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+  export UB_REPO_ROOT
+
   log()   { printf '\033[1;34m[%s]\033[0m %s\n' "$(date -u +%H:%M:%S)" "$*"; }
   warn()  { printf '\033[1;33mWARN\033[0m %s\n' "$*" >&2; }
   die()   { printf '\033[1;31mERROR\033[0m %s\n' "$*" >&2; exit 1; }

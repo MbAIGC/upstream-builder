@@ -128,7 +128,8 @@ out = {
     "push_tag": os.environ["UB_PUSH_TAG"],
     "promoted_tags": os.environ.get("UB_PROMOTE_TAGS", "").split(),
     "digest": sys.argv[2],
-    "platforms": os.environ.get("UB_DOCKER_TARGETS", "").split(),
+    # 用配置级的完整列表：单个 entry 只知道自己的架构
+    "platforms": (os.environ.get("UB_DOCKER_TARGETS_ALL") or os.environ.get("UB_DOCKER_TARGETS", "")).split(),
     "status": "success",
 }
 json.dump(out, open(sys.argv[1], "w"), indent=2, ensure_ascii=False)
