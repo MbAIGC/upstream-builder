@@ -1,7 +1,7 @@
 {
-  "archive_bytes": 643767,
-  "fetched_at": "2026-10-04T09:46:58Z",
-  "file_count": 233,
+  "archive_bytes": 648553,
+  "fetched_at": "2026-10-05T10:25:32Z",
+  "file_count": 236,
   "note": "上游源码归档的快照（等于上游 tar.gz 的内容，不是上游 git 跟踪文件的子集）。上游 .github/ 已剔除，避免其 workflow 在本仓库被执行。",
   "project": "cline-pass-switcher-go",
   "ref": {
@@ -9,10 +9,10 @@
     "value": "main"
   },
   "repo": "https://github.com/Hxjcc/cline-pass-switcher-go",
-  "sha": "cd9a98b20069f3188b407c8e4347228b9d2cdb79",
+  "sha": "1a7b1bda1b72df5c24eed2d031bf031c473dc9a2",
   "stripped": [
     ".github"
   ],
-  "tree_sha256": "7892035ed90117264327636d826951b9651fb793e5ad5c8e8e0245448e517ee7",
-  "version": "cd9a98b"
+  "tree_sha256": "3407c1c2436cc9b1ceb3fef85aa7173451f646ba2f2c234ed91393fb979fd66f",
+  "version": "1a7b1bd"
 }

@@ -151,6 +151,16 @@ func (context *Context) addResponseTool(value any, namespace string) {
 		context.addProviderWebSearch()
 		return
 	}
+	// Clients without a hosted web_search (DeepSeek Harness) declare their
+	// search as an ordinary function tool. When the operator configured a
+	// gateway search, replace that declaration so the gateway runs the search
+	// instead of the client, which would need its own provider credentials.
+	// With no configured search the client keeps its own tool, and a client
+	// that declares nothing searches not at all — the Codex contract.
+	if isClientFunctionWebSearch(tool) && context.providerToolsAvailable() && context.webSearchTool != "" {
+		context.addProviderWebSearch()
+		return
+	}
 	if isUnforwardedTool(tool) {
 		return
 	}
@@ -323,6 +333,20 @@ func isWebSearchToolType(typeName string) bool {
 	}
 }
 
+// isClientFunctionWebSearch reports whether a client declared its own search
+// as an ordinary function tool instead of the hosted web_search type.
+func isClientFunctionWebSearch(tool map[string]any) bool {
+	if jsonx.String(tool["type"]) != "function" {
+		return false
+	}
+	switch strings.ToLower(strings.TrimSpace(jsonx.String(tool["name"]))) {
+	case "web_search", "web_search_preview":
+		return true
+	default:
+		return false
+	}
+}
+
 // addProviderWebSearch declares the gateway-executed search tool that stands in
 // for the hosted web_search. The gateway performs the search, so the client only
 // ever sees the finished answer.
@@ -398,8 +422,8 @@ func normaliseShellCompat(value string) string {
 	}
 }
 
-// normaliseWebSearchTool maps configuration onto a gateway provider tool id.
-func normaliseWebSearchTool(value string) string {
+// NormaliseWebSearchTool maps configuration onto a gateway provider tool id.
+func NormaliseWebSearchTool(value string) string {
 	trimmed := strings.TrimSpace(value)
 	switch strings.ToLower(trimmed) {
 	case "", "off", "none", "false", "disabled":
@@ -442,12 +466,7 @@ func (context *Context) webSearchPolicy() string {
 	if context == nil || context.webSearchTool == "" || !context.isProviderTool(context.webSearchTool) {
 		return ""
 	}
-	return "Web search policy:\n" +
-		"- Prefer at most one web search call per turn.\n" +
-		"- Request at most 3 results.\n" +
-		"- Do not issue parallel web searches.\n" +
-		"- When invoking tools, do not output raw XML or DSML tool-call markup.\n" +
-		"- After receiving search results, answer directly; only search again if the results are clearly insufficient."
+	return GatewaySearchPolicy()
 }
 
 func (context *Context) collectDeclaredInputTools(value any, depth int) {

@@ -18,8 +18,16 @@ import (
 
 func setResponsesHeaders(writer http.ResponseWriter, targets []string, result chainResult, effort string) {
 	writer.Header().Set("X-Cline-Target-Upstream", targetHeader(targets))
-	writer.Header().Set("X-Cline-Actual-Upstream", firstNonEmpty(result.Routing.ResolvedProvider, result.Routing.FinalProvider, "unknown"))
-	writer.Header().Set("X-Cline-Canonical-Model", result.Routing.CanonicalSlug)
+	// Streaming responses are released before the gateway's routing tail
+	// arrives, so the actual channel is unknown at this point. Omit the header
+	// instead of advertising "unknown": the history row still records the real
+	// provider once the stream ends, and honestly absent beats a placeholder.
+	if actual := firstNonEmpty(result.Routing.ResolvedProvider, result.Routing.FinalProvider); actual != "" {
+		writer.Header().Set("X-Cline-Actual-Upstream", actual)
+	}
+	if canonical := strings.TrimSpace(result.Routing.CanonicalSlug); canonical != "" {
+		writer.Header().Set("X-Cline-Canonical-Model", canonical)
+	}
 	writer.Header().Set("X-Cline-Attempts", strconv.Itoa(len(result.Trace)))
 	writer.Header().Set("X-Cline-Account", headerSafe(result.Account.Name))
 	if effort != "" {
@@ -28,6 +36,7 @@ func setResponsesHeaders(writer http.ResponseWriter, targets []string, result ch
 }
 
 func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Request) {
+	request = withSessionHint(request)
 	var body map[string]any
 	if err := readJSON(request, &body); err != nil {
 		writeJSON(writer, http.StatusBadRequest, map[string]any{
@@ -87,7 +96,7 @@ func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Reque
 		})
 		return
 	}
-	targets := attemptTargets(s.requestAttempts(modelID, modelConfig, upstreamBody))
+	targets := attemptTargets(s.requestAttempts(request.Context(), modelID, modelConfig, upstreamBody))
 	setResponsesHeaders(writer, targets, result, bridgeContext.MappedReasoningEffort)
 	if result.Status != http.StatusOK {
 		message := chainErrorMessage(result)
@@ -262,6 +271,7 @@ func writeResponsesRequestError(writer http.ResponseWriter, err error) {
 }
 
 func (s *Server) handleResponsesCompact(writer http.ResponseWriter, request *http.Request) {
+	request = withSessionHint(request)
 	var body map[string]any
 	if err := readJSON(request, &body); err != nil {
 		writeJSON(writer, http.StatusBadRequest, map[string]any{
@@ -620,7 +630,7 @@ func (s *Server) handleResponsesCompactionTrigger(writer http.ResponseWriter, re
 	}
 
 	s.record(request.Context(), compactionEntry(modelID, stream, started, bridgeContext, chatBody, result, compaction))
-	targets := attemptTargets(s.requestAttempts(modelID, modelConfig, chatBody))
+	targets := attemptTargets(s.requestAttempts(request.Context(), modelID, modelConfig, chatBody))
 	setResponsesHeaders(writer, targets, result, bridgeContext.MappedReasoningEffort)
 	if !stream {
 		writeJSON(writer, http.StatusOK, compaction)
