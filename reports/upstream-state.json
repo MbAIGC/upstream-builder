@@ -3,12 +3,12 @@
     "cline-pass-switcher-go": {
       "build_status": "success",
       "image": "ghcr.io/mbaigc/cline-pass-switcher-go",
-      "image_digest": "sha256:9a0c9fc4ec1ad40a64d1d8dd5844a34bce4f5abf2d83f35113d05e291b03fad1",
-      "last_build_attempt_at": "2026-10-05T10:34:43Z",
-      "last_build_attempt_sha": "1a7b1bda1b72df5c24eed2d031bf031c473dc9a2",
+      "image_digest": "sha256:9ef3433ac6126203f593505ab3098d32adf23de7664cc3917a712002fd280ece",
+      "last_build_attempt_at": "2026-10-08T10:43:06Z",
+      "last_build_attempt_sha": "45173ff54d56db81653d47837d8015b22744cc6d",
       "last_decision": "sha-changed",
-      "last_successful_build_at": "2026-10-05T10:34:43Z",
-      "last_successful_build_sha": "1a7b1bda1b72df5c24eed2d031bf031c473dc9a2",
+      "last_successful_build_at": "2026-10-08T10:43:06Z",
+      "last_successful_build_sha": "45173ff54d56db81653d47837d8015b22744cc6d",
       "last_synced_at": "2026-10-08T10:34:11Z",
       "last_synced_sha": "45173ff54d56db81653d47837d8015b22744cc6d",
       "platforms": [
@@ -48,6 +48,6 @@
       "resolved_version": "v1.6.4"
     }
   },
-  "updated_at": "2026-10-08T10:34:11Z",
+  "updated_at": "2026-10-08T10:43:06Z",
   "version": 1
 }
