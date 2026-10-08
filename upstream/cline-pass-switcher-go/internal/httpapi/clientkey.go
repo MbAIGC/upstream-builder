@@ -26,6 +26,9 @@ type callerKey struct {
 	ID        string
 	Name      string
 	AccountID string
+	// SpendLimitUSD is the admitting grant's budget. Responses reserve it after
+	// conversion, once an existing shared run can be distinguished from a new one.
+	SpendLimitUSD float64
 	// Issued is true when the call came from a console-issued key rather than
 	// the master proxy key. Only issued keys accumulate a spend limit.
 	Issued bool
@@ -188,16 +191,19 @@ func (s *Server) authorizeClient(writer http.ResponseWriter, request *http.Reque
 				return false
 			}
 		}
-		var err error
-		hold, err = s.store.ReserveSpend(grant)
-		if err != nil {
-			writeSpendError(writer, err)
-			return false
+		if !isResponsesPath(request.URL.Path) {
+			var err error
+			hold, err = s.store.ReserveSpend(grant)
+			if err != nil {
+				writeSpendError(writer, err)
+				return false
+			}
 		}
 	}
 	s.clientThrottle.succeed(client)
 	ctx := withCallerKey(request.Context(), callerKey{
 		ID: grant.ID, Name: grant.Name, AccountID: grant.AccountID, Issued: true,
+		SpendLimitUSD: grant.SpendLimitUSD,
 	})
 	ctx = withSpendHold(ctx, hold)
 	// A pinned key never falls back to another account: the operator promised
@@ -225,9 +231,13 @@ func writeSpendError(writer http.ResponseWriter, err error) {
 		message := "该代理密钥的额度已用尽（限额 " + formatUSD(limit.LimitUSD) +
 			"，已用 " + formatUSD(limit.Usage.SpentUSD()) + "），请联系管理员提额或改用新密钥"
 		if limit.Reason == "reserved" {
-			message = "该代理密钥的额度即将用尽（限额 " + formatUSD(limit.LimitUSD) +
-				"，已用 " + formatUSD(limit.Usage.SpentUSD()) + "，另有 " + strconv.Itoa(limit.Running) +
-				" 个请求进行中，预计还会花费约 " + formatUSD(float64(limit.ExpectedMicroUSD)/1e6) + "），请等这些请求结束后再试"
+			if limit.ExpectedMicroUSD == 0 {
+				message = "该代理密钥尚无可用的单次费用记录，暂时只允许一个请求进行中，请等当前请求结束后再试"
+			} else {
+				message = "该代理密钥的额度即将用尽（限额 " + formatUSD(limit.LimitUSD) +
+					"，已用 " + formatUSD(limit.Usage.SpentUSD()) + "，另有 " + strconv.Itoa(limit.Running) +
+					" 个请求进行中，预计还会花费约 " + formatUSD(float64(limit.ExpectedMicroUSD)/1e6) + "），请等这些请求结束后再试"
+			}
 		}
 		writeKeyLimit(writer, limit.Reason, message)
 		return
