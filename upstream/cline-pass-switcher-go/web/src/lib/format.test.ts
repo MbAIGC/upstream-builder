@@ -4,6 +4,7 @@ import {
   formatQuotaUSD,
   formatTokenCount,
   isPinDisabled,
+  keyMask,
   normalizeModelConfig,
   pinReasonLabel,
   pipelineLabel,
@@ -63,9 +64,18 @@ test("normalizeModelConfig fills in the missing halves", () => {
 
 test("pipelineLabel names the two aggregators", () => {
   expect(pipelineLabel("direct")).toBe("OpenRouter")
-  expect(pipelineLabel("planner")).toBe("Vercel 网关")
+  expect(pipelineLabel("planner")).toBe("Vercel")
   expect(pipelineLabel(undefined)).toBe("未识别")
   expect(pipelineLabel("something-else")).toBe("未识别")
+})
+
+test("pipelineLabel gives a privately served model its own line", () => {
+  // The provider filter never reaches OpenRouter or Vercel for these, so naming
+  // either one on the row would be a lie.
+  expect(pipelineLabel("planner", { canonicalSlug: "private/glm-5p3-contributor" })).toBe("Private")
+  expect(pipelineLabel("planner", { upstreams: ["openai-compatible-private"] })).toBe("Private")
+  expect(pipelineLabel("planner", { upstreams: ["deepseek", "azure"] })).toBe("Vercel")
+  expect(pipelineLabel("planner")).toBe("Vercel")
 })
 
 test("providerLabel shortens the private-endpoint slug and passes others through", () => {
@@ -79,6 +89,17 @@ test("pinReasonLabel maps the backend probe reasons", () => {
   expect(pinReasonLabel("single_provider")).toBe("仅有一个候选渠道，无需钉住")
   expect(pinReasonLabel("probe_failed")).toBe("无法确认网关是否支持钉住")
   expect(pinReasonLabel(undefined)).toBe("当前不可钉住")
+})
+
+test("keyMask is as long as the stored key", () => {
+  // The mask is painted text, not a password field's own bullets, so it has to
+  // carry both the key's length and a glyph the field's monospace font draws at
+  // the same width as a character of the key itself.
+  expect(keyMask(3)).toBe("•••")
+  expect(keyMask(67)).toHaveLength(67)
+  expect(keyMask(5)).toHaveLength(5)
+  expect(keyMask(undefined)).toHaveLength(20)
+  expect(keyMask(0)).toHaveLength(20)
 })
 
 test("isPinDisabled accepts either the explicit false or the legacy reason", () => {
@@ -100,4 +121,10 @@ test("pipelineHint explains when pinning is unavailable", () => {
   expect(pipelineHint("planner", true)).toContain("providerOptions.gateway")
   expect(pipelineHint("direct", true)).toContain("provider 字段")
   expect(pipelineHint(undefined)).toContain("无法区分渠道")
+})
+
+test("pipelineHint explains a privately served model", () => {
+  const hint = pipelineHint("planner", false, "single_provider", { canonicalSlug: "private/glm-5p3-contributor" })
+  expect(hint).toContain("不经过 OpenRouter / Vercel")
+  expect(hint).toContain("不能钉住")
 })

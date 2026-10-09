@@ -28,7 +28,7 @@ import { TestBench } from "@/components/test-bench"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { api, errorMessage, UnauthorizedError } from "@/lib/api"
 import { readAdminKey, readPersistentAdminKey, storeAdminKey } from "@/lib/admin-key"
@@ -176,7 +176,17 @@ function App() {
   }, [tab])
 
   const login = async (key: string, remember = false) => {
-    await api<ModelsResponse>("/api/models", { key })
+    // Checking the key and filling the first screen are one step, so the
+    // overview is already complete when the dialog closes. Validating with
+    // /api/models alone used to leave the rows to pop in behind the dialog.
+    // The key check stays a single protected call: a typo must not spend the
+    // whole failed-attempt budget of the login throttle.
+    const [nextModels, nextMeta] = await Promise.all([
+      api<ModelsResponse>("/api/models", { key }),
+      api<MetaResponse>("/api/meta", { key }),
+    ])
+    setModels(nextModels)
+    setMeta(nextMeta)
     storeAdminKey(key, remember)
     setAuthKey(key)
   }
@@ -520,13 +530,24 @@ function App() {
         )}
 
         <Tabs value={tab} onValueChange={(value) => {
+          if (value !== tab) {
+            // A panel swap keeps whatever scroll offset the last one was read
+            // at, which drops the reader into the middle of the new panel - or
+            // past the end of a shorter one. Start it from the top instead.
+            window.scrollTo({ top: 0 })
+          }
           setTab(value)
           setVisitedTabs((current) => new Set([...current, value]))
         }}>
           <div className="overflow-x-auto pb-1">
-            <TabsList className="w-max gap-0.5">
+            <TabsList className="relative w-max gap-0.5">
+              <TabsIndicator />
               {TABS.map(({ value, label, icon: Icon }) => (
-                <TabsTrigger key={value} value={value} className="px-3">
+                <TabsTrigger
+                  key={value}
+                  value={value}
+                  className="px-3"
+                >
                   <Icon data-icon="inline-start" />
                   {label}
                 </TabsTrigger>
