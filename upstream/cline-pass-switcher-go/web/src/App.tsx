@@ -15,8 +15,8 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
-import { BrandMark } from "@/components/brand-mark"
 import { AccountsPanel } from "@/components/accounts-panel"
+import { BrandMark } from "@/components/brand-mark"
 import { HistoryPanel } from "@/components/history-panel"
 import { KeysPanel } from "@/components/keys-panel"
 import { LoginDialog } from "@/components/login-dialog"
@@ -65,8 +65,12 @@ const TABS = [
 
 // The session may remember a tab this build no longer has.
 function initialTab() {
-  const stored = sessionStorage.getItem(TAB_STORAGE)
-  return TABS.some((item) => item.value === stored) ? stored! : "overview"
+  try {
+    const stored = sessionStorage.getItem(TAB_STORAGE)
+    return TABS.some((item) => item.value === stored) ? stored! : "overview"
+  } catch {
+    return "overview"
+  }
 }
 
 function App() {
@@ -172,7 +176,11 @@ function App() {
   }, [accounts, history, historyTotal, historyHasMore, historyCursor, historyQuery, keys, meta, models, security])
 
   useEffect(() => {
-    sessionStorage.setItem(TAB_STORAGE, tab)
+    try {
+      sessionStorage.setItem(TAB_STORAGE, tab)
+    } catch {
+      // Storage is optional in restricted browser contexts.
+    }
   }, [tab])
 
   const login = async (key: string, remember = false) => {
