@@ -78,8 +78,8 @@
 
 | 环境变量 | `config.json` 字段 | 默认值 | 取值 | 说明 |
 |---|---|---|---|---|
-| `COMPACTION_RECENT_TOKENS` | `compactionRecentTokens` | `16000` | 0–64000 | 压缩时原样保留的最近对话量（估算 token）。摘要只覆盖更早的部分。`0` 表示不保留原文。 |
-| `COMPACTION_REASONING_EFFORT` | `compactionReasoningEffort` | `max` | `auto`、`max`、`xhigh`、`high`、`medium`、`low`、`minimal`、`none` | 压缩请求使用的推理档位，会映射到模型实际支持的档位；`auto` 取最接近 `high` 的一档。无法识别的值按 `max` 处理。 |
+| `COMPACTION_RECENT_TOKENS` | `compactionRecentTokens` | `16000` | 0–64000 | 压缩时原样保留的最近对话量（估算 token），同时受 32000 字符总上限约束。工具结果会优先保留报错行和尾部。摘要只覆盖更早的部分。`0` 表示不保留原文。 |
+| `COMPACTION_REASONING_EFFORT` | `compactionReasoningEffort` | `max` | `auto`、`max`、`xhigh`、`high`、`medium`、`low`、`minimal`、`none` | 压缩请求使用的推理档位，会映射到模型实际支持的档位；`auto` 取模型支持的最高档位。无法识别的值按 `max` 处理。 |
 | `COMPACTION_MIN_OUTPUT_TOKENS` | `compactionMinOutputTokens` | `16384` | 1024–32768 | 压缩请求的输出预算下限。小于 1024 时回到 `16384`，大于 32768 时按 32768 计；实际下限不低于 4096。 |
 
 摘要因推理耗尽预算而失败时，网关会用模型的最高推理档位、最多 32768 的输出预算重试一次。这个 32768 是代码常量，在运行参数表中显示为 `builtin`。
@@ -105,7 +105,7 @@
 | `accounts` | `[]` | 账号池 | 账号列表，每项包含 `id`、`name`、`key`、`enabled`。`enabled` 缺省为 `true`；缺少 `id` 时自动生成。 |
 | `accountMode` | `single` | 账号池 | `single`（单账号）或 `roundrobin`（账号池轮询），其他值按 `single` 处理。 |
 | `activeAccount` | `0` | 账号池 | 单账号模式下「当前账号」在列表中的下标，超出范围时自动收回到有效范围。 |
-| `knownModels` | 空 | 模型与上游 | 订阅模型列表，也就是 `/v1/models` 返回的内容。新装实例先为空：控制台的「拉取模型目录」从 models.dev 填充，客户端成功调用过的模型也会自动加入。 |
+| `knownModels` | 空 | 模型与上游 | 订阅模型列表，也就是 `/v1/models` 返回的内容。新装实例先为空：控制台的「拉取模型目录」从 Cline 推荐目录和 models.dev 填充，客户端成功调用过的模型也会自动加入。 |
 | `removedModels` | `[]` | 模型与上游 | 手动移除过的模型。「拉取官方模型」不会把它们加回来。 |
 | `perModel` | `{}` | 模型与上游（展开模型行） | 每个模型的渠道偏好，见下文。 |
 | `proxyKeys` | `[]` | 代理密钥 | 签发的客户端密钥，见下文。 |

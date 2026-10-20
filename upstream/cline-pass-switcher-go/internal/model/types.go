@@ -106,8 +106,8 @@ type Config struct {
 	// survive the compaction exactly. Zero disables the verbatim tail.
 	CompactionRecentTokens int `json:"compactionRecentTokens,omitempty"`
 	// CompactionReasoningEffort is the reasoning level compaction turns run at
-	// (one of the model's advertised levels, or "auto" to pick the closest to
-	// high). Reasoning models that starve on a smaller level answer "empty
+	// (one of the model's advertised levels, or "auto" to pick the strongest
+	// advertised level). Reasoning models that starve on a smaller level answer "empty
 	// response content", which costs a wasted pass plus a retry.
 	CompactionReasoningEffort string `json:"compactionReasoningEffort,omitempty"`
 	// CompactionMinOutputTokens is the output floor for compaction turns.
@@ -358,8 +358,8 @@ func DefaultConfig() Config {
 // DefaultCompactionRecentTokens keeps the last few turns verbatim inside a
 // compaction item: enough for exact paths, commands and error text (a coding
 // turn can easily spend 1-2k tokens of dialogue) without eating the context the
-// compaction just freed. It is ~1.6% of a 1M window and only user/assistant
-// text is charged against it.
+// compaction just freed. It is ~1.6% of a 1M window; user/assistant text and
+// compacted tool excerpts are charged against it.
 const DefaultCompactionRecentTokens = 16000
 
 // DefaultCompactionReasoningEffort runs compaction at the model's strongest

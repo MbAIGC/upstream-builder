@@ -19,6 +19,7 @@ import (
 	"github.com/Hxjcc/cline-pass-switcher-go/internal/buildinfo"
 	"github.com/Hxjcc/cline-pass-switcher-go/internal/jsonx"
 	"github.com/Hxjcc/cline-pass-switcher-go/internal/model"
+	"github.com/Hxjcc/cline-pass-switcher-go/internal/sse"
 	"github.com/Hxjcc/cline-pass-switcher-go/internal/store"
 	"github.com/Hxjcc/cline-pass-switcher-go/internal/strx"
 )
@@ -26,8 +27,9 @@ import (
 // External catalog sources. Variables so tests (and a future self-hosted
 // mirror) can point them at a local server.
 var (
-	openRouterAPI        = "https://openrouter.ai/api/v1"
-	officialModelsDevURL = "https://models.dev/api.json"
+	openRouterAPI                = "https://openrouter.ai/api/v1"
+	officialModelsDevURL         = "https://models.dev/api.json"
+	officialRecommendedModelsURL = "https://api.cline.bot/api/v1/ai/cline/recommended-models"
 )
 
 type Service struct {
@@ -531,11 +533,12 @@ func (s *Service) ValidateUpstreams(ctx context.Context, modelID string) (Valida
 	return ValidationResult{Supported: true, Summary: summary, Results: results}, nil
 }
 
-// FetchOfficialModels adds every cline-pass model models.dev publishes to the
-// subscription. The directory is the only source: it already carries the Cline
-// API's recommended list and the documented models as subsets, plus the
-// capability row (name, context window, reasoning tiers) the console shows.
-// A failed fetch is reported instead of looking like "nothing new".
+// FetchOfficialModels adds Cline's own recommended cline-pass models plus every
+// cline-pass model models.dev publishes. The recommended list is the freshest
+// source and includes dated snapshots such as deepseek-v4.1-flash-1017;
+// models.dev supplies the capability row (name, context window, reasoning
+// tiers). A failed models.dev fetch is reported instead of looking like
+// "nothing new"; the optional recommended-list fetch is best effort.
 func (s *Service) FetchOfficialModels(ctx context.Context) (OfficialResult, error) {
 	found := map[string]struct{}{}
 	capabilities := map[string]model.ModelMeta{}
@@ -551,6 +554,26 @@ func (s *Service) FetchOfficialModels(ctx context.Context) (OfficialResult, erro
 		}
 		found[value] = struct{}{}
 		return value
+	}
+
+	// Cline's recommended list is the authoritative subscription catalog and
+	// updates before community directories. It is optional so a temporary
+	// outage does not hide the models.dev capability data.
+	if status, raw, fetchErr := s.fetchJSON(ctx, http.MethodGet, officialRecommendedModelsURL, nil, nil, 30*time.Second); fetchErr == nil && status >= 200 && status < 300 {
+		root := jsonx.Map(raw)
+		foundRecommended := 0
+		for _, rawModel := range getSlice(root, "clinePass") {
+			item := jsonx.Map(rawModel)
+			id := add(getString(item, "id"))
+			if id == "" {
+				continue
+			}
+			foundRecommended++
+			capabilities[id] = mergeModelCapability(capabilities[id], recommendedModelCapability(item))
+		}
+		if foundRecommended > 0 {
+			sources = append(sources, "cline.api")
+		}
 	}
 
 	status, raw, err := s.fetchJSON(ctx, http.MethodGet, officialModelsDevURL, nil, nil, 30*time.Second)
@@ -576,6 +599,24 @@ func (s *Service) FetchOfficialModels(ctx context.Context) (OfficialResult, erro
 			capabilities[id] = mergeModelCapability(capabilities[id], capability)
 		}
 		sources = append(sources, "models.dev")
+	}
+
+	// Recommended-only entries have no models.dev row. For a dated snapshot,
+	// copy the base model's capabilities and keep the snapshot suffix visible.
+	for id := range found {
+		base, suffix, ok := datedModelBase(id)
+		if !ok {
+			continue
+		}
+		baseCapability, exists := capabilities[base]
+		if !exists || !baseCapability.CapabilitiesKnown {
+			continue
+		}
+		capability := baseCapability
+		if capability.DisplayName != "" {
+			capability.DisplayName = strings.TrimSpace(capability.DisplayName + " " + suffix)
+		}
+		capabilities[id] = mergeModelCapability(capabilities[id], capability)
 	}
 
 	valid := make([]string, 0, len(found))
@@ -979,7 +1020,9 @@ func firstSSEPayload(raw []byte, includeTrailing bool) (string, bool) {
 }
 
 func readSSEHead(reader io.Reader) ([]byte, string, error) {
-	const maxHead = 32 << 10
+	// The first event is part of the normal SSE event budget. Bound it by the
+	// same limit the parser enforces, not by an undocumented smaller head cap.
+	const maxHead = sse.MaxEventBytes
 	result := make([]byte, 0, 4096)
 	buffer := make([]byte, 4096)
 	for len(result) < maxHead {
@@ -1003,7 +1046,7 @@ func readSSEHead(reader io.Reader) ([]byte, string, error) {
 			return result, "", err
 		}
 	}
-	return result, "", errors.New("stream head exceeds 32 KiB before first data event")
+	return result, "", errors.New("stream head exceeds 8 MiB before first data event")
 }
 
 func (s *Service) StartStreamAttempt(ctx context.Context, modelID string, body map[string]any, attempt Attempt) StreamAttemptResult {
@@ -1123,7 +1166,9 @@ func (s *Service) StartStreamAttempt(ctx context.Context, modelID string, body m
 	guard.Commit()
 	handedOff = true
 	s.noteAccountStatus(account, http.StatusOK)
-	s.observeStick(ctx, account, attempt.Upstream, http.StatusOK)
+	// Affinity is finalized by the caller after the stream reaches a clean
+	// terminal. Committing the account/channel here would make a truncated
+	// stream sticky even though the request did not succeed.
 	return StreamAttemptResult{
 		SSE:        true,
 		Status:     http.StatusOK,
