@@ -4,6 +4,16 @@ Cline Pass 上游只提供 Chat Completions 接口。Codex 等客户端使用的
 
 网关不在服务端保存会话：每个请求都要带上完整的对话历史，响应中的 `store` 恒为 `false`。
 
+## Codex 模型能力目录
+
+`GET /v1/models` 同时返回 OpenAI 格式的 `data` 和 Codex 原生格式的 `models`，两者使用同一份订阅列表。Codex 配置中的 `model_providers.<id>.model_catalog_url` 应指向这个完整地址，并使用同一 provider 的代理密钥认证，示例见 [README](../README.md#codex-cli--codex-桌面版)。
+
+目录按已保存的模型元数据填写显示名、上下文和推理档位；未知的上下文、推理档位不编造数值。默认推理档从已知支持档位中选择，优先 `medium`，存在开启推理的档位时不会默认选 `none`；客户端显式设置的档位仍优先。输入能力只声明网关支持的文本和已知的图片能力。目录附带网关自己的简短编码助手提示及客户端工具配置，不套用其他厂商模型的提示或服务等级。
+
+支持工具调用的模型声明 `supports_search_tool`，让 Codex 发送客户端执行的 `tool_search`，完成「搜索延迟工具 → 加载声明 → 调用」；网关把这一流程转换成普通 Chat 函数调用。尚无工具能力元数据时保留这条兼容路径，已知不支持工具调用的模型不声明。缺少模型目录时，自定义模型名可能落入 Codex 的默认能力配置，导致延迟工具无法发现。客户端可能缓存目录，修改订阅或元数据后需要刷新模型列表或重启 Codex。
+
+`supports_image_detail_original` 控制图片的原图细节声明，按图片输入能力统一开启。`supports_parallel_tool_calls` 和 `supports_reasoning_summaries` 在本机 Codex 0.163.0 的目录解析中会被忽略，因此不把它们作为生效开关：并行工具调用使用请求的 `parallel_tool_calls`，推理内容由网关转换为 `reasoning` 输出项及 `response.reasoning_summary_*` 事件。客户端的 `reasoning.summary` / `model_reasoning_summary` 控制摘要偏好；这里显示的是上游返回的可读推理，网关不会额外调用模型生成另一份摘要。
+
 ## 请求转换
 
 ### 输入项
@@ -25,8 +35,10 @@ Cline Pass 上游只提供 Chat Completions 接口。Codex 等客户端使用的
 | 内容 | 处理方式 |
 |---|---|
 | `input_text`、`output_text`、`text` | 文本。 |
-| `input_image` 等图片 | 支持 URL、`data:` URL，以及 base64 数据加 MIME 类型。`detail: "original"` 按 `high` 处理。 |
+| `input_image` 等图片 | 支持 URL、`data:` URL，以及 base64 数据加 MIME 类型。具有图片输入能力的模型原样转发 `detail: "original"`，其余按 `high` 处理。 |
 | `refusal` | 作为助手消息的 `refusal` 回传。 |
+
+所有元数据中包含 `image` 输入的模型，Codex 目录统一声明 `supports_image_detail_original: true`。用户图片、工具结果图片和压缩请求都保留客户端传来的 `original` 及图片数据，`low/high/auto` 继续按原值发送；未声明图片能力的模型保留 `original → high` 回退。已验证 `cline-pass/deepseek-v4.1-flash-1017` 能接受该参数；其他图片模型按同一策略透传，实际缩放、小字识别效果和参数兼容性仍取决于各自上游。已有图片元数据升级后即可生效；缺少元数据时先在控制台「拉取模型目录」，再刷新客户端目录。
 
 ### 工具
 
@@ -138,7 +150,7 @@ Codex 的命令执行工具带有一个 `shell` 参数。模型漏填时，Windo
 
 - 校验器为 `github.com/santhosh-tekuri/jsonschema/v6`，按 JSON Schema draft 2020-12 并开启 format 校验，支持 Schema 内部的 `$defs` / `$ref`，不加载任何外部引用。
 - Schema 本身无效：返回 400（`invalid_json_schema`），`param` 指出字段，不调用上游。
-- 上游没有按 Schema 输出时（实测 GLM 会直接给纯文本标题或拒绝话术），网关先尝试本机修复：Schema 只有一个字符串字段（会话标题这类）时，把纯文本包成 `{"字段": "文本"}` 再校验；包不进去时再补发一次"改写为 JSON"的小请求 —— 只带原文与 Schema，low 推理档，最多一次。修复结果仍要完整通过 Schema 校验才会返回，不改字段名、不转换类型。
+- 上游没有按 Schema 输出时（实测 GLM 会直接给纯文本标题或拒绝话术），网关先尝试本机修复：Schema 只有一个字符串字段（会话标题这类）时，把纯文本包成 `{"字段": "文本"}` 再校验；包不进去时再补发一次"改写为 JSON"的小请求，只带原文与 Schema。修复最多一次，输出预算最多 4096 token，同时不超过原请求显式指定的 `max_output_tokens` 和已知模型输出上限；沿用原请求实际使用的推理档位和相关选项，未指定时使用模型支持的较低档位。修复结果仍要完整通过 Schema 校验才会返回，不改字段名、不转换类型。该预算针对修复这一轮，初次生成和修复的已报告消费仍分别累计。
 - strict 请求在网关内部按非流式处理，事件流在结果确定后一次性发出，避免把第一次的无效文本流给客户端；正文不再是逐字流。返回给客户端的用量来自最终有效响应，请求历史和密钥消费则累计原始生成与修复回合已报告的用量和费用，修复失败也会记账。
 - 修复后仍不符合 Schema（字段名、类型、枚举、长度等）：非流式返回 502（`upstream_schema_validation_failed`）；流式以 `response.failed` 事件结束，错误码相同。错误信息会带上失败类别，但不包含模型生成的内容。
 - 排障开关：`SCHEMA_FAIL_DUMP=/data/schema-failures` 时，校验失败会把上游原始文本、Schema、reasoning 与失败原因写进该目录（默认关闭，文件含模型输出，仅本机诊断用）。
@@ -158,35 +170,43 @@ Codex 的命令执行工具带有一个 `shell` 参数。模型漏填时，Windo
 
 ### 让 Codex 使用远端压缩
 
-Codex 只对 OpenAI 和 Azure OpenAI 形态的 provider 启用远端压缩，其他自定义 provider 会退回"本地摘要"：客户端自己发一次普通请求让模型总结。要让 Codex 使用网关的远端压缩，把 provider 的 `name` 设为 `azure`（大小写不敏感）：
+Codex 支持显式声明 provider 的压缩协议。以下配置已用 Codex 0.163.0 验证：普通名称的 provider 也会把手动 `/compact` 和自动压缩作为 `compaction_trigger` 发给网关。
 
 ```toml
 [model_providers.cline-pass]
-name = "azure"
+name = "Cline Pass"
 base_url = "http://127.0.0.1:3123/v1"
+model_catalog_url = "http://127.0.0.1:3123/v1/models"
 wire_api = "responses"
+requires_openai_auth = false
+env_key = "CLINE_PROXY_KEY"
+
+[model_providers.cline-pass.capabilities]
+remote_compaction = "v2"
 ```
+
+`remote_compaction = "unsupported"` 则使用客户端本地摘要：客户端发一次普通生成请求让模型总结。省略时采用客户端的 provider 默认值；模型和当前轮设置仍可能进一步限制压缩能力，见 [Codex 官方配置参考](https://learn.chatgpt.com/docs/config-file/config-reference)。依赖 provider 名称判定的旧版 Codex 可以继续使用 `name = "azure"`，但远端压缩并不要求新客户端必须使用 Azure 或 OpenAI 名称。
 
 ### 压缩内容
 
 压缩结果由两部分组成：
 
-1. **摘要**，覆盖较早的对话。网关要求模型按四个固定段落输出：`## Objective`、`## Work State`、`## Next Move`、`## Relevant Files`。
-2. **最近的原文**，默认约 16000 token（`COMPACTION_RECENT_TOKENS`），包含用户/助手文字，以及工具调用和工具结果的可读文本（带 `call_id` 标识），总计最多 32000 字符。普通用户/助手消息单条最多 2000 字符；工具结果按新旧分配额度（最新一组最多约 12000 字符，第二组约 6000，较早的约 3000，组内多个并发结果平分），先去除 ANSI、进度条和连续重复行，优先保留报错行及上下文，再用头尾摘录兜底。这样最近的路径、命令和报错不会在摘要中被改写；摘要请求还会附带一份工具活动摘录，避免摘要声称已经执行过的命令没执行。
+1. **摘要**，覆盖较早的对话，以及近期片段没有完整保留的长消息、图片和过长工具参数。这些原消息仍送给摘要模型，避免截断片段之外的约束无处保留；图片中的任务相关视觉信息也会写入摘要。网关要求模型按四个固定段落输出：`## Objective`、`## Work State`、`## Next Move`、`## Relevant Files`。
+2. **最近的原文**，默认约 16000 token（`COMPACTION_RECENT_TOKENS`），包含用户/助手文字，以及工具调用和工具结果的可读文本（带 `call_id` 标识），总计最多 32000 字符。普通用户/助手消息单条最多 2000 字符；工具结果按新旧分配额度（最新一组最多约 12000 字符，第二组约 6000，较早的约 3000，组内多个并发结果平分），先去除 ANSI、进度条和连续重复行，优先保留报错行及上下文，再用头尾摘录兜底。摘要请求还会补充未直接纳入摘要输入的近期工具活动：最多约 6000 字符，优先取最新活动，再按执行顺序排列。
 
-两部分一起放在 `compaction` 项的 `encrypted_content` 中，以 `ocx1:` 开头、base64 编码。客户端下一轮把它带回来时，网关按「摘要 → 最近原文 → 本轮新输入」的顺序放回对话。
+两部分一起放在 `compaction` 项的 `encrypted_content` 中，以 `ocx1:` 开头、base64 编码。客户端下一轮把它带回来时，网关先放入摘要，再按原来的对话顺序合并已保留的消息与最近原文，最后追加本轮新输入。
 
-独立 `/responses/compact` 的 `output` 已经原样保留 user 消息，因此它不会把这些 user 文本再放进 `recent`；远端 compaction v2 没有额外的 user 输出，`recent` 会连同工具文本一起带上。
+两种压缩接口的 `recent` 都保留用户、助手和工具文本的先后顺序。独立 `/responses/compact` 的 `output` 还会原样保留 user 消息；回放时，网关按角色和文本逐条匹配这些消息并合并重复副本，保留原消息中的图片。截短的长消息额外携带完整文本的哈希，避免原文和截短副本重复，也避免把前缀相同的不同请求当成同一条；旧压缩项只在原文匹配无歧义时合并。重复发送的不同轮请求仍分别保留，压缩项之后的新输入不参与历史去重。
 
 ### 预算与重试
 
-- 压缩请求使用 `COMPACTION_REASONING_EFFORT` 指定的推理档位（默认 `max`），输出预算不低于 `COMPACTION_MIN_OUTPUT_TOKENS`（默认 16384）。
-- 推理模型有时把预算全部用在隐藏的思考上，最后没有输出摘要（上游返回 `empty response content`）。遇到这种情况，网关改用模型的最高推理档位、把输出预算加倍（最多 32768）重试一次。两次尝试都记在请求历史里。
+- 压缩请求使用 `COMPACTION_REASONING_EFFORT` 指定的推理档位（默认 `max`），输出预算按 `COMPACTION_MIN_OUTPUT_TOKENS`（默认 16384）提高，再按模型已知的输出上限封顶。
+- 推理模型有时把预算全部用在隐藏的思考上，最后没有输出摘要（上游返回 `empty response content`）。遇到这种情况，网关改用模型的最高推理档位、把输出预算加倍（最多 32768，且不超过已知模型输出上限）重试一次。已经处于最高档位和输出上限时，不重复发送相同请求。实际发生的尝试都记在请求历史里。
 - 其他失败已经经过正常的账号和渠道重试，不再额外重试。
 
 ### 降级与提示
 
-- **压缩降级。** 摘要最终没能生成时，网关不返回错误，而是返回一个降级的 `compaction` 项，其中包含失败原因、已经产生的部分摘要和最近的用户请求。会话可以继续，代价是较早的上下文丢失。请求历史中这条记录标为「压缩降级」。
+- **压缩降级。** 摘要最终没能生成时，网关返回一个降级的 `compaction` 项，包含失败原因、已经产生的部分摘要、最近内容，以及上一轮成功摘要（如果存在）。连续失败时继续沿用最后一份有效摘要，避免不断嵌套降级文本；新一轮成功后更新这份兜底摘要。两次成功摘要之间未被近期内容保留的进展仍可能缺失；首次压缩失败且没有旧摘要时，较早上下文仍可能丢失。请求历史中这条记录标为「压缩降级」。
 - **摘要缺段。** 摘要正常结束但缺少某些段落时（例如只有 Objective 和 Work State），压缩照常生效，不重试；请求历史的模型列会显示「摘要缺 …」，列出缺少的段落。
 
 ## 流式输出

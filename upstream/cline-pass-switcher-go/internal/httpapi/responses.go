@@ -49,27 +49,29 @@ func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Reque
 	// carries a compaction_trigger item. It is answered by the compaction
 	// pipeline rather than a normal generation turn.
 	if responsesbridge.RequestTriggersCompaction(body) {
-		hold, ok := s.admitDeferredSpend(writer, request)
+		release, ok := s.admitDeferredGeneration(writer, request)
 		if !ok {
 			return
 		}
-		defer hold.Release()
+		defer release()
 		s.handleResponsesCompactionTrigger(writer, request, body)
 		return
 	}
 	requestedModel, _ := body["model"].(string)
+	requestedMeta := s.store.ModelMeta(requestedModel)
 	chatBody, bridgeContext, err := responsesbridge.ToChatWithOptions(body, responsesbridge.Options{
-		ReplayReasoning:           responsesbridge.ShouldReplayReasoning(requestedModel),
-		ReasoningEfforts:          s.store.ModelMeta(requestedModel).ReasoningEfforts,
-		RawReasoning:              responsesbridge.ShouldUseRawReasoning(requestedModel),
-		StrictToolHistory:         s.store.StrictToolHistory(),
-		WebSearchUpstream:         s.store.WebSearchUpstream(),
-		ModelPipeline:             s.store.ModelMeta(requestedModel).Pipeline,
-		WebFetchUpstream:          s.store.WebFetchUpstream(),
-		ShellCompat:               s.store.ShellCompat(),
-		ShellCompatEnforce:        s.store.ShellCompatEnforce(),
-		RecentCompactionTokens:    s.store.CompactionRecentTokens(),
-		CompactionReasoningEffort: s.store.CompactionReasoningEffort(),
+		ReplayReasoning:             responsesbridge.ShouldReplayReasoning(requestedModel),
+		ReasoningEfforts:            requestedMeta.ReasoningEfforts,
+		SupportsImageDetailOriginal: requestedMeta.SupportsOriginalImageDetail(),
+		RawReasoning:                responsesbridge.ShouldUseRawReasoning(requestedModel),
+		StrictToolHistory:           s.store.StrictToolHistory(),
+		WebSearchUpstream:           s.store.WebSearchUpstream(),
+		ModelPipeline:               requestedMeta.Pipeline,
+		WebFetchUpstream:            s.store.WebFetchUpstream(),
+		ShellCompat:                 s.store.ShellCompat(),
+		ShellCompatEnforce:          s.store.ShellCompatEnforce(),
+		RecentCompactionTokens:      s.store.CompactionRecentTokens(),
+		CompactionReasoningEffort:   s.store.CompactionReasoningEffort(),
 	})
 	if err != nil {
 		writeResponsesRequestError(writer, err)
@@ -84,11 +86,11 @@ func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Reque
 		s.handleStreamingResponses(writer, request, body, chatBody, bridgeContext, modelID, modelConfig)
 		return
 	}
-	hold, ok := s.admitDeferredSpend(writer, request)
+	release, ok := s.admitDeferredGeneration(writer, request)
 	if !ok {
 		return
 	}
-	defer hold.Release()
+	defer release()
 	// Strict structured requests are answered from one buffered upstream turn
 	// so the bridge can wrap plain text or run a single reformatting repair
 	// before any partial, non-JSON text reaches the client. The upstream call
@@ -173,8 +175,9 @@ func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Reque
 
 // repairStructuredOutput rewrites an upstream answer that ignored a strict
 // JSON Schema. Plain text is wrapped locally when the schema has a single
-// string property (conversation titles); otherwise one low-effort
-// reformatting call carries only the failed text and the schema. The caller
+// string property (conversation titles); otherwise one
+// reformatting call carries only the failed text and the schema, with a bounded
+// output budget and the original reasoning effort. The caller
 // re-validates the returned response, so a repair that still does not satisfy
 // the schema keeps the original failure.
 func (s *Server) repairStructuredOutput(
@@ -201,7 +204,12 @@ func (s *Server) repairStructuredOutput(
 			return result, response, nil
 		}
 	}
-	repaired := s.runNonStreamChain(ctx, modelID, responsesbridge.StructuredRepairBody(chatBody, text, schema, s.store.ModelMeta(modelID).ReasoningEfforts), modelConfig, s.upstream.NonStreamTimeout())
+	meta := s.store.ModelMeta(modelID)
+	repairBody := responsesbridge.StructuredRepairBody(chatBody, text, schema, meta.ReasoningEfforts)
+	if limit := meta.OutputLimit; limit > 0 && positiveInt(repairBody["max_tokens"]) > limit {
+		repairBody["max_tokens"] = limit
+	}
+	repaired := s.runNonStreamChain(ctx, modelID, repairBody, modelConfig, s.upstream.NonStreamTimeout())
 	result.Usage = addUsage(result.Usage, repaired.Usage)
 	result.Trace = append(result.Trace, repaired.Trace...)
 	if repaired.Out == nil || repaired.Status != http.StatusOK {
@@ -333,16 +341,18 @@ func (s *Server) handleResponsesCompact(writer http.ResponseWriter, request *htt
 		return
 	}
 	requestedModel, _ := body["model"].(string)
+	requestedMeta := s.store.ModelMeta(requestedModel)
 	chatBody, bridgeContext, err := responsesbridge.ToCompactionChatWithOptions(body, responsesbridge.Options{
-		ReplayReasoning:           responsesbridge.ShouldReplayReasoning(requestedModel),
-		ReasoningEfforts:          s.store.ModelMeta(requestedModel).ReasoningEfforts,
-		RawReasoning:              responsesbridge.ShouldUseRawReasoning(requestedModel),
-		StrictToolHistory:         s.store.StrictToolHistory(),
-		WebSearchUpstream:         s.store.WebSearchUpstream(),
-		ModelPipeline:             s.store.ModelMeta(requestedModel).Pipeline,
-		WebFetchUpstream:          s.store.WebFetchUpstream(),
-		RecentCompactionTokens:    s.store.CompactionRecentTokens(),
-		CompactionReasoningEffort: s.store.CompactionReasoningEffort(),
+		ReplayReasoning:             responsesbridge.ShouldReplayReasoning(requestedModel),
+		ReasoningEfforts:            requestedMeta.ReasoningEfforts,
+		SupportsImageDetailOriginal: requestedMeta.SupportsOriginalImageDetail(),
+		RawReasoning:                responsesbridge.ShouldUseRawReasoning(requestedModel),
+		StrictToolHistory:           s.store.StrictToolHistory(),
+		WebSearchUpstream:           s.store.WebSearchUpstream(),
+		ModelPipeline:               requestedMeta.Pipeline,
+		WebFetchUpstream:            s.store.WebFetchUpstream(),
+		RecentCompactionTokens:      s.store.CompactionRecentTokens(),
+		CompactionReasoningEffort:   s.store.CompactionReasoningEffort(),
 	})
 	if err != nil {
 		writeResponsesRequestError(writer, err)
@@ -465,7 +475,7 @@ func compactionEntry(
 }
 
 // compactionMinOutputTokens is the built-in output floor for compaction turns;
-// the configured floor can only raise it.
+// the configured floor can raise it, before the model's output cap is applied.
 // Reasoning models can otherwise spend the entire budget on hidden thinking
 // and the upstream answers "empty response content"; see ensureCompactionBudget.
 const compactionMinOutputTokens = 4096
@@ -475,9 +485,14 @@ func (s *Server) ensureCompactionBudget(chatBody map[string]any) {
 	if floor < compactionMinOutputTokens {
 		floor = compactionMinOutputTokens
 	}
-	if positiveInt(chatBody["max_tokens"]) < floor {
-		chatBody["max_tokens"] = floor
+	tokens := positiveInt(chatBody["max_tokens"])
+	if tokens < floor {
+		tokens = floor
 	}
+	if limit := s.store.ModelMeta(jsonx.String(chatBody["model"])).OutputLimit; limit > 0 && tokens > limit {
+		tokens = limit
+	}
+	chatBody["max_tokens"] = tokens
 }
 
 // compactionConvert adapts a completed Chat response to the compaction shape
@@ -515,18 +530,23 @@ func (s *Server) runCompactionChain(
 	if compactionStarved(result, err) && ctx.Err() == nil {
 		retryBody := maps.Clone(chatBody)
 		responsesbridge.EscalateCompactionBudget(retryBody, s.store.ModelMeta(modelID).ReasoningEfforts)
-		bridgeContext.MaxOutputTokens = retryBody["max_tokens"]
-		if effort := effortFromChatBody(retryBody); effort != "" {
-			bridgeContext.MappedReasoningEffort = effort
+		s.ensureCompactionBudget(retryBody)
+		// A model already at its output cap and strongest effort cannot get
+		// a larger retry. Repeating the same request only spends again.
+		if positiveInt(retryBody["max_tokens"]) > positiveInt(chatBody["max_tokens"]) || effortFromChatBody(retryBody) != effortFromChatBody(chatBody) {
+			bridgeContext.MaxOutputTokens = retryBody["max_tokens"]
+			if effort := effortFromChatBody(retryBody); effort != "" {
+				bridgeContext.MappedReasoningEffort = effort
+			}
+			escalated := s.runNonStreamChain(ctx, modelID, retryBody, modelConfig, s.upstream.NonStreamTimeout())
+			escalated.Usage = addUsage(result.Usage, escalated.Usage)
+			escalated.Trace = append(append([]model.Trace(nil), result.Trace...), escalated.Trace...)
+			compaction, err = convertCompaction(escalated, bridgeContext, convert)
+			if err == nil {
+				return escalated, compaction, nil
+			}
+			result = escalated
 		}
-		escalated := s.runNonStreamChain(ctx, modelID, retryBody, modelConfig, s.upstream.NonStreamTimeout())
-		escalated.Usage = addUsage(result.Usage, escalated.Usage)
-		escalated.Trace = append(append([]model.Trace(nil), result.Trace...), escalated.Trace...)
-		compaction, err = convertCompaction(escalated, bridgeContext, convert)
-		if err == nil {
-			return escalated, compaction, nil
-		}
-		result = escalated
 	}
 	if degrade == nil || ctx.Err() != nil {
 		return result, nil, err
@@ -615,18 +635,20 @@ func writeCompactFailure(writer http.ResponseWriter, modelID string, details map
 // endpoint performs, so the history entry is recorded as kind "compact".
 func (s *Server) handleResponsesCompactionTrigger(writer http.ResponseWriter, request *http.Request, body map[string]any) {
 	requestedModel, _ := body["model"].(string)
+	requestedMeta := s.store.ModelMeta(requestedModel)
 	chatBody, bridgeContext, err := responsesbridge.ToCompactionChatWithOptions(body, responsesbridge.Options{
-		ReplayReasoning:           responsesbridge.ShouldReplayReasoning(requestedModel),
-		ReasoningEfforts:          s.store.ModelMeta(requestedModel).ReasoningEfforts,
-		RawReasoning:              responsesbridge.ShouldUseRawReasoning(requestedModel),
-		StrictToolHistory:         s.store.StrictToolHistory(),
-		WebSearchUpstream:         s.store.WebSearchUpstream(),
-		ModelPipeline:             s.store.ModelMeta(requestedModel).Pipeline,
-		WebFetchUpstream:          s.store.WebFetchUpstream(),
-		ShellCompat:               s.store.ShellCompat(),
-		ShellCompatEnforce:        s.store.ShellCompatEnforce(),
-		RecentCompactionTokens:    s.store.CompactionRecentTokens(),
-		CompactionReasoningEffort: s.store.CompactionReasoningEffort(),
+		ReplayReasoning:             responsesbridge.ShouldReplayReasoning(requestedModel),
+		ReasoningEfforts:            requestedMeta.ReasoningEfforts,
+		SupportsImageDetailOriginal: requestedMeta.SupportsOriginalImageDetail(),
+		RawReasoning:                responsesbridge.ShouldUseRawReasoning(requestedModel),
+		StrictToolHistory:           s.store.StrictToolHistory(),
+		WebSearchUpstream:           s.store.WebSearchUpstream(),
+		ModelPipeline:               requestedMeta.Pipeline,
+		WebFetchUpstream:            s.store.WebFetchUpstream(),
+		ShellCompat:                 s.store.ShellCompat(),
+		ShellCompatEnforce:          s.store.ShellCompatEnforce(),
+		RecentCompactionTokens:      s.store.CompactionRecentTokens(),
+		CompactionReasoningEffort:   s.store.CompactionReasoningEffort(),
 	})
 	if err != nil {
 		writeResponsesRequestError(writer, err)

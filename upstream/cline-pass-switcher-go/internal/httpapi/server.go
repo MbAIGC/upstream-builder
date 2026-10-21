@@ -162,13 +162,11 @@ func (s *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 			return
 		}
 		defer spendHoldFrom(request.Context()).Release()
-		if isGenerationRequest(request) {
-			key := "master"
-			if caller, ok := callerKeyFrom(request.Context()); ok && caller.ID != "" {
-				key = caller.ID
-			}
-			release, allowed := s.limiter.acquire(key)
-			if !allowed {
+		// Responses admits work after conversion so reconnects can join an
+		// existing shared run without reserving a second generation slot.
+		if isGenerationRequest(request) && !isResponsesPath(path) {
+			release, err := s.acquireGeneration(request.Context())
+			if err != nil {
 				writeConcurrencyLimit(writer)
 				return
 			}
@@ -644,7 +642,8 @@ func (s *Server) handleSaveConfig(writer http.ResponseWriter, request *http.Requ
 
 // handleListModels advertises exactly the subscription the console shows.
 func (s *Server) handleListModels(writer http.ResponseWriter) {
-	ids := strx.UniqueTrimmed(s.store.KnownModels())
+	snapshot := s.store.ModelsSnapshot()
+	ids := strx.UniqueTrimmed(snapshot.KnownModels)
 	data := make([]map[string]any, 0, len(ids))
 	for _, id := range ids {
 		data = append(data, map[string]any{"id": id, "object": "model"})
@@ -652,10 +651,10 @@ func (s *Server) handleListModels(writer http.ResponseWriter) {
 	writeJSON(writer, http.StatusOK, map[string]any{
 		"object": "list",
 		"data":   data,
-		// Current Codex clients additionally decode a provider-specific
-		// {"models": [...]} catalog. An empty list keeps model refresh valid
-		// while allowing custom Cline IDs to use Codex's fallback metadata.
-		"models": []any{},
+		// Keep the OpenAI list while supplying Codex capabilities for the same
+		// subscription. Custom model IDs otherwise use fallback metadata that
+		// hides deferred tools and their search tool.
+		"models": codexModelCatalog(ids, snapshot.Models),
 	})
 }
 

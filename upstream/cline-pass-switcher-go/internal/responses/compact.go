@@ -1,12 +1,16 @@
 package responses
 
 import (
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"slices"
+	"sort"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/Hxjcc/cline-pass-switcher-go/internal/jsonx"
 )
@@ -29,7 +33,7 @@ The single next action to take, plus pending work and open questions.
 ## Relevant Files
 Files, directories, endpoints or config keys that matter, one line each.
 
-Keep every fact another model needs to continue accurately; drop small talk. Thinking alone is not a summary.`
+Keep every fact another model needs to continue accurately; drop small talk. For images, describe the visually relevant facts needed for the task, rather than only stating that an image was attached. Thinking alone is not a summary.`
 
 const (
 	// maxCompactionRecentMessageRunes caps one ordinary user/assistant message.
@@ -103,6 +107,9 @@ func normalizeSectionText(value string) string {
 type CompactionRecentMessage struct {
 	Role string `json:"role"`
 	Text string `json:"text"`
+	// SourceHash identifies the full text when Text is only an excerpt. It
+	// keeps distinct long requests with the same prefix distinguishable.
+	SourceHash string `json:"source_hash,omitempty"`
 	// toolResult is set only while building a fresh tail. It is deliberately
 	// unexported so envelopes stay compatible with older payloads.
 	toolResult bool
@@ -111,9 +118,10 @@ type CompactionRecentMessage struct {
 // CompactionPayload is what the ocx1: envelope carries. Older envelopes hold
 // the summary text directly; decoding still accepts those.
 type CompactionPayload struct {
-	Summary  string                    `json:"summary"`
-	Recent   []CompactionRecentMessage `json:"recent,omitempty"`
-	Degraded bool                      `json:"degraded,omitempty"`
+	Summary         string                    `json:"summary"`
+	Recent          []CompactionRecentMessage `json:"recent,omitempty"`
+	Degraded        bool                      `json:"degraded,omitempty"`
+	PreviousSummary string                    `json:"previous_summary,omitempty"`
 }
 
 func ToCompactionChatWithOptions(body map[string]any, options Options) (map[string]any, *Context, error) {
@@ -149,11 +157,15 @@ func ToCompactionChatWithOptions(body map[string]any, options Options) (map[stri
 		// does not produce an empty or misleading summary.
 		summaryEnd = len(history)
 	}
+	// Text excerpts cannot replace the rest of a long message or its images.
+	// Include those original turns in the summary even when their excerpts
+	// also belong to the retained tail.
+	summaryEnd = compactionSummaryBoundary(history, summaryEnd)
 	context.compactionRecent = tail
 
 	summaryInstructions := compactionInstructions
 	if tailSelected {
-		if transcript := compactionToolTranscript(history); transcript != "" {
+		if transcript := compactionToolTranscript(history[summaryEnd:]); transcript != "" {
 			summaryInstructions += "\n\nTool activity transcript (use it for Work State; exact excerpts):\n" + transcript
 		}
 	}
@@ -188,6 +200,37 @@ func ToCompactionChatWithOptions(body map[string]any, options Options) (map[stri
 	context.outputSchema = nil
 	context.ParallelToolCalls = false
 	return chat, context, nil
+}
+
+func compactionSummaryBoundary(messages []any, cut int) int {
+	end := cut
+	for index := cut; index < len(messages); index++ {
+		message := jsonx.Map(messages[index])
+		role := jsonx.String(message["role"])
+		needsSummary := false
+		if role == "user" || role == "assistant" {
+			needsSummary = utf8.RuneCountInString(collectPartText(message["content"])) > maxCompactionRecentMessageRunes
+			for _, raw := range jsonx.Slice(message["content"]) {
+				if kind := jsonx.String(jsonx.Map(raw)["type"]); kind != "" && kind != "text" {
+					needsSummary = true
+				}
+			}
+			for _, raw := range jsonx.Slice(message["tool_calls"]) {
+				function := jsonx.Map(jsonx.Map(raw)["function"])
+				if utf8.RuneCountInString(jsonx.String(function["arguments"])) > 500 {
+					needsSummary = true
+				}
+			}
+		}
+		if needsSummary {
+			end = index + 1
+			// Never cut between an assistant's calls and their tool results.
+			for end < len(messages) && jsonx.String(jsonx.Map(messages[end])["role"]) == "tool" {
+				end++
+			}
+		}
+	}
+	return end
 }
 
 // compactionGroup keeps an assistant tool call together with its tool results
@@ -262,7 +305,7 @@ func buildCompactionGroups(messages []any) []compactionGroup {
 			}
 			if text != "" {
 				groups = append(groups, compactionGroup{
-					start: index, messages: []CompactionRecentMessage{{Role: "assistant", Text: truncateText(text, maxCompactionRecentMessageRunes)}},
+					start: index, messages: []CompactionRecentMessage{compactionRecentText("assistant", text)},
 				})
 			}
 			index++
@@ -281,7 +324,7 @@ func buildCompactionGroups(messages []any) []compactionGroup {
 					continue
 				}
 				groups = append(groups, compactionGroup{
-					start: index, messages: []CompactionRecentMessage{{Role: "user", Text: truncateText(text, maxCompactionRecentMessageRunes)}},
+					start: index, messages: []CompactionRecentMessage{compactionRecentText("user", text)},
 				})
 			}
 			index++
@@ -387,6 +430,16 @@ func compactionToolTranscript(messages []any) string {
 	)
 	lines := make([]string, 0, 8)
 	total := 0
+	add := func(line string) {
+		line = compactCleanedToolOutput(line, maxLineRunes)
+		lines = append(lines, line)
+		total += len([]rune(line)) + 1
+		for total > maxTotalRunes && len(lines) > 0 {
+			total -= len([]rune(lines[0])) + 1
+			lines[0] = ""
+			lines = lines[1:]
+		}
+	}
 	for _, raw := range messages {
 		message := jsonx.Map(raw)
 		if message == nil {
@@ -406,11 +459,7 @@ func compactionToolTranscript(messages []any) string {
 					arguments = "{}"
 				}
 				line := "- assistant called " + name + " with arguments " + truncateText(arguments, maxLineRunes)
-				if total+len([]rune(line)) > maxTotalRunes {
-					return strings.Join(lines, "\n")
-				}
-				lines = append(lines, line)
-				total += len([]rune(line))
+				add(line)
 			}
 		case "tool":
 			callID := strings.TrimSpace(jsonx.String(message["tool_call_id"]))
@@ -423,44 +472,113 @@ func compactionToolTranscript(messages []any) string {
 				label += " (" + callID + ")"
 			}
 			line := label + ": " + compactToolOutput(text, maxLineRunes)
-			if total+len([]rune(line)) > maxTotalRunes {
-				return strings.Join(lines, "\n")
-			}
-			lines = append(lines, line)
-			total += len([]rune(line))
+			add(line)
 		}
 	}
 	return strings.Join(lines, "\n")
 }
 
-// filterCompactionRecent drops recent text that is already present in the
-// current request. Codex replays retained user messages alongside a compaction
-// item, so without this filter environment and user messages would appear two
-// or three times in the next model call.
-func filterCompactionRecent(recent []CompactionRecentMessage, messages []any) []CompactionRecentMessage {
-	if len(recent) == 0 {
-		return nil
+func compactionSourceHash(text string) string {
+	sum := sha256.Sum256([]byte(strings.TrimSpace(text)))
+	return hex.EncodeToString(sum[:])
+}
+
+func compactionRecentText(role, text string) CompactionRecentMessage {
+	message := CompactionRecentMessage{Role: role, Text: truncateText(text, maxCompactionRecentMessageRunes)}
+	if message.Text != text {
+		message.SourceHash = compactionSourceHash(text)
 	}
-	current := make(map[string]struct{}, len(messages))
-	for _, raw := range messages {
-		message := jsonx.Map(raw)
-		if message == nil {
-			continue
-		}
-		text := strings.TrimSpace(collectPartText(message["content"]))
-		if text == "" {
-			continue
-		}
-		current[jsonx.String(message["role"])+"\x00"+text] = struct{}{}
-	}
-	filtered := make([]CompactionRecentMessage, 0, len(recent))
+	return message
+}
+
+// mergeCompactionRecent restores an ordered tail among the messages retained
+// before its compaction item. Matching occurrences are anchors, not a set of
+// text to delete: a repeated user request must keep its corresponding answer.
+// Reusing the original anchor also preserves images and other content parts.
+func mergeCompactionRecent(messages []any, recent []CompactionRecentMessage) []any {
+	type messageKey struct{ role, text string }
+	tail := make([]CompactionRecentMessage, 0, len(recent))
 	for _, message := range recent {
-		if _, found := current[message.Role+"\x00"+strings.TrimSpace(message.Text)]; found {
+		message.Role = strings.TrimSpace(message.Role)
+		message.Text = strings.TrimSpace(message.Text)
+		if (message.Role == "user" || message.Role == "assistant") && message.Text != "" {
+			tail = append(tail, message)
+		}
+	}
+	if len(tail) == 0 {
+		return messages
+	}
+	positions := make(map[messageKey][]int, len(messages))
+	sources := make(map[messageKey][]int)
+	legacyExcerpts := make(map[messageKey][]int)
+	for index, raw := range messages {
+		message := jsonx.Map(raw)
+		key := messageKey{jsonx.String(message["role"]), strings.TrimSpace(collectPartText(message["content"]))}
+		positions[key] = append(positions[key], index)
+		if utf8.RuneCountInString(key.text) > maxCompactionRecentMessageRunes {
+			source := messageKey{key.role, compactionSourceHash(key.text)}
+			sources[source] = append(sources[source], index)
+			excerpt := messageKey{key.role, truncateText(key.text, maxCompactionRecentMessageRunes)}
+			legacyExcerpts[excerpt] = append(legacyExcerpts[excerpt], index)
+		}
+	}
+	// Match backwards because recent is the newest part of the conversation.
+	// Each occurrence can anchor once, and anchor order must remain monotonic.
+	anchors := make([]int, len(tail))
+	before := len(messages)
+	for index := len(tail) - 1; index >= 0; index-- {
+		anchors[index] = -1
+		matches := positions[messageKey{tail[index].Role, tail[index].Text}]
+		if tail[index].SourceHash != "" {
+			matches = sources[messageKey{tail[index].Role, tail[index].SourceHash}]
+		} else if len(matches) == 0 {
+			// Older envelopes carry no source hash. Only a unique full-text
+			// candidate can safely identify a truncated legacy excerpt.
+			candidates := legacyExcerpts[messageKey{tail[index].Role, tail[index].Text}]
+			if len(candidates) > 0 {
+				first := jsonx.Map(messages[candidates[0]])
+				text := strings.TrimSpace(collectPartText(first["content"]))
+				unique := true
+				for _, candidate := range candidates[1:] {
+					if strings.TrimSpace(collectPartText(jsonx.Map(messages[candidate])["content"])) != text {
+						unique = false
+						break
+					}
+				}
+				if unique {
+					matches = candidates
+				}
+			}
+		}
+		if match := sort.SearchInts(matches, before) - 1; match >= 0 {
+			anchors[index] = matches[match]
+			before = matches[match]
+		}
+	}
+	merged := make([]any, 0, len(messages)+len(tail))
+	appendTail := func(start, end int) {
+		for _, message := range tail[start:end] {
+			merged = append(merged, map[string]any{"role": message.Role, "content": message.Text})
+		}
+	}
+	cursor, pending := 0, 0
+	for index, anchor := range anchors {
+		if anchor < 0 {
 			continue
 		}
-		filtered = append(filtered, message)
+		merged = append(merged, messages[cursor:anchor]...)
+		appendTail(pending, index)
+		merged = append(merged, messages[anchor])
+		cursor, pending = anchor+1, index+1
 	}
-	return filtered
+	if pending == 0 {
+		// An envelope without any shared messages follows the retained history.
+		merged = append(merged, messages...)
+		appendTail(0, len(tail))
+		return merged
+	}
+	appendTail(pending, len(tail))
+	return append(merged, messages[cursor:]...)
 }
 
 // estimateCompactionTokens approximates the tokenizer closely enough to bound
@@ -579,7 +697,6 @@ func DegradedCompactionResponse(context *Context, reason, partial string) map[st
 	users := context.compactionUsers
 	summaryContext := *context
 	summaryContext.compactionUsers = nil
-	summaryContext.compactionRecent = filterCompactionRecent(context.compactionRecent, users)
 	output := append([]any(nil), users...)
 	output = append(output, degradedCompactionItem(&summaryContext, reason, partial))
 	return map[string]any{
@@ -602,9 +719,10 @@ func degradedCompactionItem(context *Context, reason, partial string) map[string
 		"id":   newID("cmp"),
 		"type": "compaction",
 		"encrypted_content": encodeCompactionPayload(CompactionPayload{
-			Summary:  degradedCompactionSummary(context, reason, partial),
-			Recent:   context.compactionRecent,
-			Degraded: true,
+			Summary:         degradedCompactionSummary(context, reason, partial),
+			Recent:          context.compactionRecent,
+			Degraded:        true,
+			PreviousSummary: context.compactionPreviousSummary,
 		}),
 	}
 }
@@ -621,9 +739,9 @@ func PartialCompactionSummary(chat map[string]any) string {
 	return strings.TrimSpace(collectPartText(jsonx.Map(choice["message"])["content"]))
 }
 
-// degradedCompactionSummary keeps the compaction shape (the four headings) so
-// the next model still gets a usable handoff, and preserves the most recent
-// user requests verbatim because everything older is gone.
+// degradedCompactionSummary preserves the last successful summary when one
+// exists. Without it, only the retained recent messages and partial new
+// summary remain available.
 func degradedCompactionSummary(context *Context, reason, partial string) string {
 	reason = strings.TrimSpace(reason)
 	if reason == "" {
@@ -652,19 +770,34 @@ func degradedCompactionSummary(context *Context, reason, partial string) string 
 	builder.WriteString("[compaction degraded] The earlier conversation could not be summarized: ")
 	builder.WriteString(truncateText(reason, 200))
 	builder.WriteString("\n\n## Objective\n")
-	if len(recent) > 0 {
+	previous := strings.TrimSpace(context.compactionPreviousSummary)
+	if previous != "" {
+		builder.WriteString("Continue the objective in the last successful summary below, subject to newer user requests.\n")
+	} else if len(recent) > 0 {
 		builder.WriteString("Unknown beyond the recent user requests preserved below.\n")
 	} else {
 		builder.WriteString("Unknown: the earlier conversation is no longer available.\n")
 	}
-	builder.WriteString("\n## Work State\nUnavailable: summarization failed, so completed work and tool results from earlier turns were dropped.\n")
+	builder.WriteString("\n## Work State\n")
+	if previous != "" {
+		builder.WriteString("The last successful summary is preserved. Progress after it may be missing except for the recent messages.\n\n<last_successful_summary>\n")
+		builder.WriteString(previous)
+		builder.WriteString("\n</last_successful_summary>\n")
+	} else {
+		builder.WriteString("Unavailable: summarization failed, so completed work and tool results from earlier turns were dropped.\n")
+	}
 	if partial = strings.TrimSpace(partial); partial != "" {
 		builder.WriteString("\nPartial summary produced before the failure (may be cut off):\n")
 		builder.WriteString(partial)
 		builder.WriteString("\n")
 	}
-	builder.WriteString("\n## Next Move\nRe-read the recent user requests below and continue from the last one; ask the user to restate the goal if it is unclear.\n")
-	builder.WriteString("\n## Relevant Files\nUnknown: recover paths from the recent requests below.\n")
+	if previous != "" {
+		builder.WriteString("\n## Next Move\nUse the last successful summary together with newer retained messages, verify intervening progress, and continue the latest request.\n")
+		builder.WriteString("\n## Relevant Files\nRecover paths from the last successful summary and the recent messages.\n")
+	} else {
+		builder.WriteString("\n## Next Move\nRe-read the recent user requests below and continue from the last one; ask the user to restate the goal if it is unclear.\n")
+		builder.WriteString("\n## Relevant Files\nUnknown: recover paths from the recent requests below.\n")
+	}
 	if len(recent) > 0 {
 		builder.WriteString("\n---\nRecent user requests (verbatim, oldest first):\n")
 		for _, text := range recent {
@@ -810,11 +943,12 @@ func CompactionResponse(chat map[string]any, context *Context) (map[string]any, 
 		return nil, err
 	}
 	output := append([]any(nil), context.compactionUsers...)
-	recent := filterCompactionRecent(context.compactionRecent, context.compactionUsers)
 	output = append(output, map[string]any{
-		"id":                newID("cmp"),
-		"type":              "compaction",
-		"encrypted_content": encodeCompactionPayload(CompactionPayload{Summary: summary, Recent: recent}),
+		"id":   newID("cmp"),
+		"type": "compaction",
+		// Keep the complete order in the envelope; replay merges duplicate
+		// users with their original messages, including images.
+		"encrypted_content": encodeCompactionPayload(CompactionPayload{Summary: summary, Recent: context.compactionRecent}),
 	})
 	return map[string]any{
 		"id": response["id"], "object": "response.compaction", "created_at": response["created_at"],
