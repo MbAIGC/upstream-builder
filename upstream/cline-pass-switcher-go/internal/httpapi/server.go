@@ -179,6 +179,10 @@ func (s *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	switch {
+	case request.Method == http.MethodPost && path == "/api/gateway-capabilities":
+		s.handleGatewayCapabilities(writer, request)
+	case request.Method == http.MethodPost && path == "/api/verify-routing":
+		s.handleVerifyRouting(writer, request)
 	case request.Method == http.MethodGet && path == "/api/models":
 		s.handleModels(writer, request)
 	case request.Method == http.MethodPost && path == "/api/probe":
@@ -215,6 +219,8 @@ func (s *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 		s.handleRemoveModel(writer, request)
 	case request.Method == http.MethodGet && path == "/api/history":
 		s.handleHistory(writer, request)
+	case request.Method == http.MethodGet && path == "/api/usage":
+		s.handleUsage(writer, request)
 	case request.Method == http.MethodPost && path == "/api/history/clear":
 		s.handleClearHistory(writer)
 	case request.Method == http.MethodGet && path == "/api/config":
@@ -251,7 +257,7 @@ func (s *Server) handleModels(writer http.ResponseWriter, request *http.Request)
 		subscription = append(subscription, map[string]any{
 			"id":     id,
 			"config": modelConfigView(snapshot.PerModel[id]),
-			"meta":   snapshot.Models[id],
+			"meta":   s.upstream.RoutingMeta(id, snapshot.PerModel[id], snapshot.Models[id]),
 		})
 	}
 	writeJSON(writer, http.StatusOK, map[string]any{
@@ -286,6 +292,7 @@ func (s *Server) handleStatus(writer http.ResponseWriter) {
 func (s *Server) handleProbe(writer http.ResponseWriter, request *http.Request) {
 	var body struct {
 		Model string `json:"model"`
+		Force bool   `json:"force"`
 	}
 	if err := readJSON(request, &body); err != nil {
 		writeRequestError(writer, err)
@@ -295,7 +302,7 @@ func (s *Server) handleProbe(writer http.ResponseWriter, request *http.Request) 
 		writeJSON(writer, http.StatusBadRequest, map[string]any{"error": "model required"})
 		return
 	}
-	result, err := s.upstream.ProbeModel(request.Context(), body.Model)
+	result, err := s.upstream.SmartProbeModel(request.Context(), body.Model, body.Force)
 	if err != nil {
 		writeJSON(writer, http.StatusBadGateway, map[string]any{"ok": false, "error": upstream.ErrorMessage(err)})
 		return
@@ -612,6 +619,18 @@ func (s *Server) handleSaveConfig(writer http.ResponseWriter, request *http.Requ
 		writeRequestError(writer, err)
 		return
 	}
+	for modelID, value := range body.PerModel {
+		value = normalizeRoutingConfig(value)
+		if err := model.ValidateGatewayHas(value.GatewayHas); err != nil {
+			writeJSON(writer, http.StatusBadRequest, map[string]any{"error": err.Error()})
+			return
+		}
+		if len(value.GatewayHas) > 0 && !routingConfigEqual(value, s.store.ModelConfig(modelID)) && !s.upstream.HasVerifiedRouting(modelID, value) {
+			writeJSON(writer, http.StatusBadRequest, map[string]any{"error": "能力过滤配置需要先验证并应用"})
+			return
+		}
+		body.PerModel[modelID] = value
+	}
 	if err := s.store.UpdateConfig(func(cfg *model.Config) {
 		for modelID, value := range body.PerModel {
 			value.Upstreams = normalizeList(value.Upstreams)
@@ -695,6 +714,7 @@ func (s *Server) handleTest(writer http.ResponseWriter, request *http.Request) {
 		},
 		"max_tokens": 256,
 	}
+	request = request.WithContext(s.withRoutingRecord(request.Context(), body.Model, modelConfig, chatBody))
 	result := s.runNonStreamChain(request.Context(), body.Model, chatBody, modelConfig, 180*time.Second)
 	if result.Status != http.StatusOK {
 		message := chainErrorMessage(result)
@@ -743,7 +763,7 @@ func (s *Server) handleTest(writer http.ResponseWriter, request *http.Request) {
 	modelMeta := s.store.ModelMeta(body.Model)
 	writeJSON(writer, http.StatusOK, map[string]any{
 		"ok": true, "ms": time.Since(started).Milliseconds(), "targets": modelConfig.Upstreams,
-		"exclude": modelConfig.Exclude, "actual": routing.FinalProvider, "actualName": routing.FinalProviderName,
+		"exclude": modelConfig.Exclude, "gatewayHas": modelConfig.GatewayHas, "actual": routing.FinalProvider, "actualName": routing.FinalProviderName,
 		"pipeline": routing.Pipeline, "pinnable": modelMeta.Pinnable != nil && *modelMeta.Pinnable, "canonicalSlug": routing.CanonicalSlug,
 		"fallbacks": routing.Fallbacks, "content": strx.Truncate(routing.Content, 120), "account": result.Account.Name,
 		"trace": result.Trace,
@@ -772,7 +792,12 @@ func withSessionHint(request *http.Request) *http.Request {
 }
 
 func (s *Server) requestAttempts(ctx context.Context, modelID string, cfg model.PerModelConfig, body map[string]any) []upstream.Attempt {
-	attempts := s.upstream.BuildAttempts(modelID, cfg)
+	var attempts []upstream.Attempt
+	if policy, ok := ctx.Value(recordedRoutingKey{}).(recordedRouting); ok {
+		attempts = policy.Attempts
+	} else {
+		attempts = s.upstream.BuildRequestAttempts(modelID, cfg, body)
+	}
 	_, slug := s.upstream.LookupStick(upstream.SessionKeyFor(ctx, modelID, body))
 	return upstream.PreferAttempt(attempts, slug)
 }
@@ -831,7 +856,7 @@ func (s *Server) runNonStreamChain(ctx context.Context, modelID string, body map
 		if succeeded {
 			break
 		}
-		if fatal || ctx.Err() != nil || s.stopFailover(result.Status, modelID) {
+		if fatal || ctx.Err() != nil || s.stopFailover(result.Status, modelID, len(attempt.GatewayHas) > 0) {
 			break
 		}
 	}
@@ -843,11 +868,14 @@ func (s *Server) runNonStreamChain(ctx context.Context, modelID string, body map
 // worth another attempt when a different account can be picked for it.
 // A 429 on an auto route is the same request repeated, so the channel list
 // is not a way out; a pinnable model can still move to the next pinned provider.
-func (s *Server) stopFailover(status int, modelID string) bool {
+func (s *Server) stopFailover(status int, modelID string, filtered ...bool) bool {
 	switch status {
 	case http.StatusUnauthorized, http.StatusForbidden:
 		return !s.upstream.AccountFailoverAvailable()
 	case http.StatusTooManyRequests:
+		if len(filtered) > 0 && filtered[0] {
+			return false
+		}
 		return s.upstream.AutoRoute(modelID)
 	default:
 		return false
@@ -915,6 +943,7 @@ func (s *Server) handleChat(writer http.ResponseWriter, request *http.Request) {
 	}
 	s.mapChatSearch(modelID, body)
 	modelConfig := s.store.ModelConfig(modelID)
+	request = request.WithContext(s.withRoutingRecord(request.Context(), modelID, modelConfig, body))
 	stream, _ := body["stream"].(bool)
 	if stream {
 		s.handleStreamingChat(writer, request, modelID, body, modelConfig)

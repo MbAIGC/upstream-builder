@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   Activity,
+  BarChart3,
   Boxes,
   Check,
   Copy,
@@ -18,6 +19,7 @@ import { toast } from "sonner"
 import { AccountsPanel } from "@/components/accounts-panel"
 import { BrandMark } from "@/components/brand-mark"
 import { HistoryPanel } from "@/components/history-panel"
+import { UsagePanel } from "@/components/usage-panel"
 import { KeysPanel } from "@/components/keys-panel"
 import { LoginDialog } from "@/components/login-dialog"
 import { MetricCard } from "@/components/metric-card"
@@ -42,6 +44,8 @@ import type {
   KeysResponse,
   MetaResponse,
   ModelConfig,
+  GatewayCapabilitiesResponse,
+  RoutingVerifyResponse,
   ModelsResponse,
   OfficialResponse,
   ProbeResponse,
@@ -61,6 +65,7 @@ const TABS = [
   { value: "security", label: "访问与安全", icon: ShieldCheck },
   { value: "test", label: "测试台", icon: TestTube2 },
   { value: "history", label: "请求历史", icon: Activity },
+  { value: "usage", label: "Token 统计", icon: BarChart3 },
 ] as const
 
 // The session may remember a tab this build no longer has.
@@ -89,6 +94,7 @@ function App() {
   const [tab, setTab] = useState(initialTab)
   const [visitedTabs, setVisitedTabs] = useState(() => new Set([tab]))
   const [refreshing, setRefreshing] = useState(false)
+  const [usageRevision, setUsageRevision] = useState(0)
   const [proxyBaseCopied, setProxyBaseCopied] = useState(false)
   const [batchProbe, setBatchProbe] = useState<{ done: number; total: number } | null>(null)
   const batchProbeAbort = useRef<AbortController | null>(null)
@@ -131,6 +137,7 @@ function App() {
     const snapshot = await fetchSnapshot(authKey)
     applySnapshot(snapshot)
     await refreshHistory()
+    setUsageRevision(value => value + 1)
   }
 
   useEffect(() => {
@@ -253,6 +260,7 @@ function App() {
     })
     const response = await api<AccountsResponse>("/api/accounts", { key: authKey })
     setAccounts(response)
+    await loadModels()
   }
 
   const testAccount = (key: string, id?: string) =>
@@ -335,17 +343,18 @@ function App() {
   }
 
   const probe = async (modelID: string) => {
-    const response = await api<ProbeResponse>("/api/probe", {
-      key: authKey,
-      body: { model: modelID },
-    })
-    await loadModels()
-    return response
+    try {
+      return await api<ProbeResponse>("/api/probe", {
+        key: authKey,
+        body: { model: modelID, force: true },
+      })
+    } finally {
+      try { await loadModels() } catch (error) { handleError(error) }
+    }
   }
 
-  // Probing every model is one real upstream request each, so the batch runs a
-  // few at a time, reports progress, and can be stopped without leaving the
-  // panel stuck on "probing".
+  // Each request completes both default discovery and any applicable single-
+  // channel control pair. A shared abort signal cancels the entire pipeline.
   const probeAll = async () => {
     const list = models?.subscription ?? []
     if (!list.length || batchProbeAbort.current) {
@@ -354,15 +363,23 @@ function App() {
     const controller = new AbortController()
     batchProbeAbort.current = controller
     let result: ProbeBatchResult = { ok: 0, failed: 0, aborted: false }
+    const routes = { native: 0, available: 0, unavailable: 0, unconfirmed: 0, not_applicable: 0 }
     try {
       result = await runProbeBatch(
         list.map((model) => model.id),
         async (modelID, signal) => {
-          await api<ProbeResponse>("/api/probe", {
-            key: authKey,
-            body: { model: modelID },
-            signal,
-          })
+          try {
+            const response = await api<ProbeResponse>("/api/probe", {
+              key: authKey,
+              body: { model: modelID, force: false },
+              signal,
+            })
+            const status = response.routingDiscovery?.status
+            if (status) routes[status] += 1
+          } catch (error) {
+            if (!signal.aborted) routes.unconfirmed += 1
+            throw error
+          }
         },
         {
           signal: controller.signal,
@@ -373,14 +390,8 @@ function App() {
       batchProbeAbort.current = null
       setBatchProbe(null)
     }
-    if (!result.aborted) {
-      try {
-        await loadModels()
-      } catch (error) {
-        handleError(error)
-      }
-    }
-    return result
+    try { await loadModels() } catch (error) { handleError(error) }
+    return { ...result, routes }
   }
 
   const cancelProbeAll = () => batchProbeAbort.current?.abort()
@@ -399,6 +410,22 @@ function App() {
       key: authKey,
       body: { model: modelID, upstreams, exclude },
     })
+
+  const readGateway = async (modelID: string, refresh: boolean, upstreams: string[] = []) => {
+    const response = await api<GatewayCapabilitiesResponse>("/api/gateway-capabilities", {
+      key: authKey, body: { model: modelID, refresh, upstreams },
+    })
+    await loadModels()
+    return response
+  }
+
+  const verifyGateway = async (modelID: string, config: ModelConfig, accountID: string, allAccounts: boolean, force = true) => {
+    const response = await api<RoutingVerifyResponse>("/api/verify-routing", {
+      key: authKey, body: { model: modelID, config, accountId: accountID, allAccounts, apply: true, force, adopt: !force },
+    })
+    await Promise.all([loadModels(), refreshHistory()])
+    return response
+  }
 
   const updateModelConfig = async (modelID: string, config: ModelConfig) => {
     const previous = models?.subscription.find((model) => model.id === modelID)?.config
@@ -624,6 +651,9 @@ function App() {
             {models && (
               <ModelsPanel
                 data={models}
+                accounts={accounts?.accounts ?? []}
+                onReadGateway={readGateway}
+                onVerifyGateway={verifyGateway}
                 onRefresh={async () => {
                   await loadModels()
                 }}
@@ -703,6 +733,9 @@ function App() {
               }}
               onClear={clearHistory}
             />
+          </TabsContent>
+          <TabsContent value="usage" keepMounted={visitedTabs.has("usage")}>
+            <UsagePanel authKey={authKey} active={tab === "usage" && Boolean(authKey || meta && !meta.authRequired)} refreshKey={usageRevision} onError={handleError} />
           </TabsContent>
         </Tabs>
       </main>

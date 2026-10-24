@@ -144,7 +144,9 @@
 | `GET` | `/api/models` | 订阅模型及其渠道设置、探测信息。 |
 | `POST` | `/api/models/remove` | 移除订阅模型。请求体 `{"model": "..."}`。 |
 | `POST` | `/api/fetch-official-models` | 从 Cline 推荐目录和 models.dev 拉取 Cline Pass 模型列表，把新模型加入订阅。models.dev 拉取失败返回 500，不会伪装成「没有新模型」。 |
-| `POST` | `/api/probe` | 探测模型的渠道与路由方式。请求体 `{"model": "..."}`。**产生费用。** |
+| `POST` | `/api/probe` | 合并默认路由发现与适用单渠道模型的能力路由对照。请求体 `{"model":"...","force":false}`；`force:true` 强制刷新。返回 `defaultRoute` 与 `routingDiscovery`，不修改模型配置。**未命中缓存时产生费用。** |
+| `POST` | `/api/gateway-capabilities` | 读取并缓存模型的 Vercel 供应商能力，请求体 `{"model":"...","refresh":true,"upstreams":["deepseek"]}`，`upstreams` 可省略。返回 `catalog` 和 `recommendedHas`：单个供应商取其支持的能力标签，多个取交集，未指定则优先使用模型原厂供应商；不提交模型推理。 |
+| `POST` | `/api/verify-routing` | 固定账号做上游正反对照。请求体 `{"model":"...","config":{"upstreams":["deepseek"],"exclude":[],"gatewayHas":["vision","implicit-caching"]},"accountId":"可选","allAccounts":false,"apply":true,"force":true}`。返回 `ok`、`applied`、`checks`。`force:false` 可复用完全相同的近期成功验证；额外指定 `adopt:true` 仅允许采用当前发现方案，必须明确指定原验证账号并 `apply:true`，失效则返回 409，不重新推理。失败不应用；验证期间配置或凭据变化也返回 409。**实际验证产生费用。** |
 | `POST` | `/api/validate-upstreams` | 逐个校验模型的候选渠道。请求体 `{"model": "..."}`。**产生费用。** |
 | `POST` | `/api/test` | 发送一次测试请求。请求体 `{"model": "...", "upstreams": [...], "exclude": [...]}`，后两项可省略，省略时使用已保存的设置。**产生费用。** |
 | `GET` / `POST` | `/api/config` | 读取配置摘要；保存模型渠道设置，请求体 `{"perModel": {"<模型>": {...}}}`。 |
@@ -156,7 +158,16 @@
 | `GET` / `POST` | `/api/security` | 读取或保存 `proxyKey`、`adminKey`、`publicBaseUrl`。 |
 | `GET` | `/api/settings` | 运行参数的当前生效值及来源，见[配置参考](configuration.md#查看当前生效值)。 |
 | `GET` | `/api/history` | 请求历史，见下文。 |
+| `GET` | `/api/usage` | 按日 Token 与实际费用统计，支持日期、模型、账号和代理密钥筛选。 |
 | `POST` | `/api/history/clear` | 清空请求历史。账号的请求计数和密钥用量不受影响。 |
+
+### GET /api/usage
+
+使用管理接口认证，代理客户端密钥不能读取。查询参数 `from`、`to` 为包含首尾的 `YYYY-MM-DD`，默认最近 7 天，单次最多 365 天；统计日界线固定为 UTC+8。`model` 按请求模型 ID 匹配，`account`、`key` 使用响应 `filters` 中的 ID，省略表示全部。
+
+响应包含 `summary` 汇总、`trend` 逐日序列，以及 `models`、`accounts`、`keys` 分组明细；`filters` 保留所有仍留存的筛选选项，不随当前条件缩窄。`usageRequests`、`costRequests` 分别表示有 Token 用量、实际费用报告的请求数；未上报的数值不估算。思考 Token 是输出的一部分，不再次加入总 Token。失败请求已报告的费用同样累计。
+
+汇总保存在 `metadata.json` 的 `usageLedger`，与请求日志一起提交和恢复；保留近 365 天，清空请求历史不清空汇总。首次升级仅能补入当时仍保留的历史，`importedRequests` 表示已补入的请求数。
 
 ### GET /api/history
 
@@ -181,6 +192,7 @@
 - `resolved`：网关实际运行的渠道（`routing.resolvedProvider`），与 `provider` 一致，除非网关悄悄改道；`fallback: true` 表示实际渠道既不是会话亲和指定的渠道，也不是为该模型钉选的渠道。`fallbackReason` 区分两种原因：`retry` = 钉的渠道被尝试过但失败（真降级），`ignored` = 它从未出现在网关的尝试列表里（偏好被忽略，例如网关不读渠道偏好）；缺省表示上游没报告足够的细节。
 - `gatewayAttempts`：网关内部每次渠道尝试的 `provider`、`status`、`ms`、`success`、`requestId`、`responseId`。
 - `generationId`：网关给这次生成的编号，用于和账单对账。
+- `gatewayHas` / `targetProviders` / `routingStatus`：本次实际使用的能力要求、允许的供应商与路由匹配状态。`matched` 表示命中目标，`mismatch` 表示偏离，`unknown` 表示缺少证据；对照请求类型为 `routing-check`，其 `rejected` 表示无效上游按预期被拒绝。
 - `session`：客户端这一轮的会话 ID（请求里的 `prompt_cache_key`，也就是 Codex 的 thread id）。历史搜索会匹配它，粘进搜索框即可筛出某个会话的全部请求，看它走的是哪个渠道、缓存多少。
 - `usage.gatewayCost` / `inputCost` / `outputCost` / `surchargeCost`：网关自己那份价目表的拆分，仅供展示。实测它与账本的倍数随渠道而变（同一个渠道固定，例如某渠道上市价恰为账本的 2 倍），工具费则叠加在上面。计入密钥限额的始终是 `usage.cost`（账本费用）。
 - `usage.cacheHitTokens` / `cacheMissTokens`：上游自己报告的缓存命中与未命中 token 数，控制台用它们显示缓存命中率。

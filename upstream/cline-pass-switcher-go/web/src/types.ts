@@ -16,6 +16,86 @@ export interface ModelConfig {
   upstream?: string
   upstreams: string[]
   exclude: string[]
+  gatewayHas?: string[]
+}
+
+export interface GatewayProvider {
+  slug: string
+  name: string
+  has: string[]
+  quantization?: string
+  context?: number
+  output?: number
+}
+
+export interface GatewayCatalog {
+  model: string
+  source: string
+  fetchedAt: number
+  providers: GatewayProvider[]
+}
+
+export interface RoutingCheck {
+  profile: string
+  accountId: string
+  account: string
+  has: string[]
+  targets: string[]
+  actual: string[]
+  matched: boolean
+  rejected: boolean
+  ok: boolean
+  current: boolean
+  error?: string
+  code?: string
+  checkedAt: number
+  ms: number
+}
+
+export interface GatewayCapabilitiesResponse {
+  ok: boolean
+  catalog: GatewayCatalog
+  recommendedHas: string[]
+}
+
+export interface RoutingVerifyResponse {
+  ok: boolean
+  applied: boolean
+  checks: RoutingCheck[]
+}
+
+export interface GatewayRoutingActions {
+  accounts?: Account[]
+  onReadGateway?: (modelID: string, refresh: boolean, upstreams?: string[]) => Promise<GatewayCapabilitiesResponse>
+  onVerifyGateway?: (modelID: string, config: ModelConfig, accountID: string, allAccounts: boolean, force?: boolean) => Promise<RoutingVerifyResponse>
+}
+
+export interface DefaultRouteProbe {
+  profile: string
+  accountId: string
+  account: string
+  pipeline: string
+  canonical: string
+  providers: string[]
+  private: boolean
+  pinnable: boolean
+  reason?: string
+  checkedAt: number
+  current: boolean
+}
+
+export interface RoutingDiscovery {
+  profile: string
+  sourceConfig: string
+  accountId: string
+  account: string
+  status: "native" | "available" | "unavailable" | "unconfirmed" | "not_applicable"
+  reason?: string
+  config?: Partial<ModelConfig>
+  checkProfile?: string
+  checkedAt: number
+  current: boolean
+  cached?: boolean
 }
 
 export interface UpstreamDetail {
@@ -64,6 +144,11 @@ export interface ModelMeta {
   probedAt?: number
   upstreamStatus?: Record<string, UpstreamStatus>
   validatedAt?: number
+  gatewayCatalog?: GatewayCatalog
+  routingChecks?: Record<string, RoutingCheck>
+  gatewayStatusHas?: string[]
+  defaultRoute?: DefaultRouteProbe
+  routingDiscovery?: RoutingDiscovery
 }
 
 export interface SubscriptionModel {
@@ -261,6 +346,9 @@ export interface HistoryItem {
   session?: string
   gatewayAttempts?: GatewayAttempt[]
   generationId?: string
+  gatewayHas?: string[]
+  targetProviders?: string[]
+  routingStatus?: string
   ms: number
   ttftMs?: number
   stream: boolean
@@ -289,6 +377,40 @@ export interface HistoryResponse {
   nextCursor?: string
 }
 
+export interface UsageTotals {
+  requests: number
+  errors: number
+  usageRequests: number
+  costRequests: number
+  inputTokens: number
+  outputTokens: number
+  reasoningTokens: number
+  cachedTokens: number
+  totalTokens: number
+  cost: number
+}
+
+export interface UsageFilter { from: string; to: string; model: string; account: string; key: string }
+export interface UsageOption { id: string; name: string }
+export interface UsageGroup extends UsageTotals { id: string; name: string }
+export interface UsageDay extends UsageTotals { day: string }
+export interface UsageReport {
+  from: string
+  to: string
+  timezone: string
+  retentionDays: number
+  startedAt: number
+  importedRequests: number
+  availableFrom: string
+  generatedAt: number
+  summary: UsageTotals
+  trend: UsageDay[]
+  models: UsageGroup[]
+  accounts: UsageGroup[]
+  keys: UsageGroup[]
+  filters: { models: UsageOption[]; accounts: UsageOption[]; keys: UsageOption[] }
+}
+
 export interface AccountTestResponse {
   ok: boolean
   ms: number
@@ -298,6 +420,8 @@ export interface AccountTestResponse {
 }
 
 export interface ProbeResponse {
+  defaultRoute?: DefaultRouteProbe
+  routingDiscovery?: RoutingDiscovery
   ok: boolean
   ms: number
   error?: string
@@ -311,6 +435,7 @@ export interface TestResponse {
   ms?: number
   targets?: string[]
   exclude?: string[]
+  gatewayHas?: string[]
   actual?: string
   actualName?: string
   pipeline?: "direct" | "planner"

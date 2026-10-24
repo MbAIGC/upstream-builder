@@ -231,6 +231,7 @@ func NormalizeConfig(cfg *Config) {
 		cfg.PerModel = map[string]PerModelConfig{}
 	}
 	for id, modelConfig := range cfg.PerModel {
+		modelConfig.GatewayHas = NormalizeGatewayHas(modelConfig.GatewayHas)
 		if modelConfig.Upstreams == nil && modelConfig.Upstream != "" {
 			modelConfig.Upstreams = []string{modelConfig.Upstream}
 		}
@@ -262,6 +263,9 @@ func NormalizeConfig(cfg *Config) {
 }
 
 func NormalizeMetadata(meta *Metadata) {
+	if meta.UsageLedger != nil && meta.UsageLedger.Buckets == nil {
+		meta.UsageLedger.Buckets = map[string]UsageBucket{}
+	}
 	if meta.Models == nil {
 		meta.Models = map[string]ModelMeta{}
 	}

@@ -6,11 +6,11 @@
       "image_digest": "sha256:855c8f36b5df332f23415b04d76a0e8f75af55eccca620949d5bf66c005c3a0d",
       "last_build_attempt_at": "2026-10-23T08:41:12Z",
       "last_build_attempt_sha": "030492c7f4ee444fef6beff5a6c787dc7f0bfbde",
-      "last_decision": "sha-changed",
+      "last_decision": "throttled(23.4h<24h)",
       "last_successful_build_at": "2026-10-23T08:41:12Z",
       "last_successful_build_sha": "030492c7f4ee444fef6beff5a6c787dc7f0bfbde",
-      "last_synced_at": "2026-10-23T08:31:58Z",
-      "last_synced_sha": "030492c7f4ee444fef6beff5a6c787dc7f0bfbde",
+      "last_synced_at": "2026-10-24T08:07:05Z",
+      "last_synced_sha": "6efe7e114e7279e902e8918b657dbd0fafcb14cc",
       "platforms": [
         "linux/amd64",
         "linux/arm64"
@@ -21,8 +21,8 @@
       },
       "release_tag": "cline-pass-switcher-go/rolling",
       "repo": "https://github.com/Hxjcc/cline-pass-switcher-go",
-      "resolved_sha": "030492c7f4ee444fef6beff5a6c787dc7f0bfbde",
-      "resolved_version": "030492c"
+      "resolved_sha": "6efe7e114e7279e902e8918b657dbd0fafcb14cc",
+      "resolved_version": "6efe7e1"
     },
     "cline2api": {
       "build_status": "success",
@@ -33,7 +33,7 @@
       "last_decision": "up-to-date",
       "last_successful_build_at": "2026-10-12T10:53:47Z",
       "last_successful_build_sha": "59aeae6c3b4e63ea92f50242fe4b8c154813500d",
-      "last_synced_at": "2026-10-23T08:31:58Z",
+      "last_synced_at": "2026-10-24T08:07:04Z",
       "last_synced_sha": "59aeae6c3b4e63ea92f50242fe4b8c154813500d",
       "platforms": [
         "linux/amd64",
@@ -48,6 +48,6 @@
       "resolved_version": "v1.6.5"
     }
   },
-  "updated_at": "2026-10-23T08:41:12Z",
+  "updated_at": "2026-10-24T08:07:05Z",
   "version": 1
 }
