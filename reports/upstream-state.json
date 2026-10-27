@@ -9,7 +9,7 @@
       "last_decision": "up-to-date",
       "last_successful_build_at": "2026-10-25T08:31:24Z",
       "last_successful_build_sha": "6efe7e114e7279e902e8918b657dbd0fafcb14cc",
-      "last_synced_at": "2026-10-26T08:54:06Z",
+      "last_synced_at": "2026-10-27T08:58:48Z",
       "last_synced_sha": "6efe7e114e7279e902e8918b657dbd0fafcb14cc",
       "platforms": [
         "linux/amd64",
@@ -33,7 +33,7 @@
       "last_decision": "up-to-date",
       "last_successful_build_at": "2026-10-12T10:53:47Z",
       "last_successful_build_sha": "59aeae6c3b4e63ea92f50242fe4b8c154813500d",
-      "last_synced_at": "2026-10-26T08:54:05Z",
+      "last_synced_at": "2026-10-27T08:58:48Z",
       "last_synced_sha": "59aeae6c3b4e63ea92f50242fe4b8c154813500d",
       "platforms": [
         "linux/amd64",
@@ -48,6 +48,6 @@
       "resolved_version": "v1.6.5"
     }
   },
-  "updated_at": "2026-10-26T08:54:06Z",
+  "updated_at": "2026-10-27T08:58:48Z",
   "version": 1
 }
