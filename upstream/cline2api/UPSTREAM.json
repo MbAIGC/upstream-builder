@@ -1,17 +1,17 @@
 {
-  "archive_bytes": 232062,
-  "fetched_at": "2026-10-12T10:48:12Z",
-  "file_count": 62,
+  "archive_bytes": 274369,
+  "fetched_at": "2026-10-29T09:57:17Z",
+  "file_count": 64,
   "note": "上游源码归档的快照（等于上游 tar.gz 的内容，不是上游 git 跟踪文件的子集）。上游 .github/ 已剔除，避免其 workflow 在本仓库被执行。",
   "project": "cline2api",
   "ref": {
     "type": "release-latest"
   },
   "repo": "https://github.com/luawei1/cline2api",
-  "sha": "59aeae6c3b4e63ea92f50242fe4b8c154813500d",
+  "sha": "414831d9baf1c40c7e6961b6c39fd81059801ec9",
   "stripped": [
     ".github"
   ],
-  "tree_sha256": "a31713d37880f605bb99f2d7f999d535b776093541e9f3f082082a652fdc046a",
-  "version": "v1.6.5"
+  "tree_sha256": "d669edf6a097a81633a483f24b95ddb537c8d1947ab27229d3d50105833e8638",
+  "version": "v1.6.6"
 }
