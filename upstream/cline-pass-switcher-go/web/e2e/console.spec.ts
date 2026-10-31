@@ -139,23 +139,31 @@ test("storage faults refresh after login and clear after recovery", async ({ pag
     const response = await route.fetch()
     const payload = await response.json()
     if (route.request().headers()["x-admin-key"] === ADMIN_KEY) payload.storage = storage
+    // Keep a real response in flight, as on a slower CI runner. Advancing the
+    // browser clock must leave time for that response to reach the client.
+    await new Promise(resolve => setTimeout(resolve, 150))
     await route.fulfill({ response, json: payload })
   })
+  const waitForAlert = async (title: string, visible: boolean) => {
+    await expect.poll(async () => {
+      // A single 16-second jump also fires the 15-second API timeout. Small
+      // ticks let HTTP and React settle while still exercising the real poll.
+      await page.clock.fastForward(1000)
+      return page.getByText(title, { exact: true }).isVisible()
+    }, { intervals: [100], timeout: 10_000 }).toBe(visible)
+  }
   await signIn(page)
   await expect(page.getByText("费用记录异常", { exact: true })).toHaveCount(0)
   storage = { status: "unavailable", message: "已暂停有额度上限的密钥的新请求", detail: "test journal write failed" }
-  await page.clock.fastForward(16_000)
-  await expect(page.getByText("费用记录异常", { exact: true })).toBeVisible()
+  await waitForAlert("费用记录异常", true)
   await expect(page.getByText(storage.message, { exact: true })).toBeVisible()
   await page.getByText("故障详情", { exact: true }).click()
   await expect(page.getByText(storage.detail, { exact: true })).toBeVisible()
   storage = { status: "degraded", message: "日志已保存，快照合并失败", detail: "test snapshot failed" }
-  await page.clock.fastForward(16_000)
-  await expect(page.getByText("数据存储需要检查", { exact: true })).toBeVisible()
+  await waitForAlert("数据存储需要检查", true)
   await expect(page.getByText("费用记录异常", { exact: true })).toHaveCount(0)
   storage = { status: "ok", message: "", detail: "" }
-  await page.clock.fastForward(16_000)
-  await expect(page.getByText("数据存储需要检查", { exact: true })).toHaveCount(0)
+  await waitForAlert("数据存储需要检查", false)
 })
 
 test("switching tabs keeps unfinished management drafts", async ({ page }) => {
@@ -220,6 +228,11 @@ test("resetting usage preserves unfinished key edits and additions", async ({ pa
   const minted = await additionField.inputValue()
   expect(minted).toMatch(/^sk-[0-9a-f]{48}$/)
   await page.getByRole("article", { name: "unsaved reset rename", exact: true }).getByRole("button", { name: "重置用量", exact: true }).click()
+  await expect(page.getByRole("dialog")).toContainText("重新开放消费额度")
+  await page.getByRole("button", {name:"取消",exact:true}).click()
+  await expect(page.getByRole("article", { name: "unsaved reset rename", exact: true }).getByRole("button", { name: "重置用量", exact: true })).toBeEnabled()
+  await page.getByRole("article", { name: "unsaved reset rename", exact: true }).getByRole("button", { name: "重置用量", exact: true }).click()
+  await page.getByRole("button", {name:"确认重置",exact:true}).click()
   await expect(page.getByText("已重置该密钥的用量", { exact: true })).toBeVisible()
   await expect(name).toHaveValue("unsaved reset rename")
   await expect(page.getByPlaceholder("使用者或用途").last()).toHaveValue("unsaved reset addition")
@@ -243,4 +256,11 @@ test("expanded model keeps the strict-only routing controls", async ({ page }) =
   await expect(page.getByLabel("钉住模式")).toHaveCount(0)
   await expect(panel.getByRole("button", { name: "全部设为优先" })).toBeVisible()
   await expect(panel.getByRole("button", { name: "恢复自动" })).toBeVisible()
+  await page.getByRole("textbox", {name:"筛选模型",exact:true}).fill(modelID)
+  await page.getByRole("tab", {name:"账号池",exact:true}).click()
+  await expect(page.getByRole("button", {name:"添加账号",exact:true})).toBeVisible()
+  await page.getByRole("tab", {name:"模型与上游",exact:true}).click()
+  await expect(page.getByRole("textbox", {name:"筛选模型",exact:true})).toHaveValue(modelID)
+  await expect(modelRow().getByRole("button", {name:"收起模型",exact:true})).toBeVisible()
+  await expect(panel.getByRole("button", {name:"全部设为优先"})).toBeVisible()
 })
