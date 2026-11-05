@@ -409,6 +409,17 @@ func markZenFail() {
 	zenStateMu.Unlock()
 }
 
+// markZenFailForRequest 按请求来源决定是否计入 zen 全局故障转移：
+// 模型探测请求不计数——单个 zen 模型坏 ≠ zen 整体挂，否则批量补测会把
+// 故障窗误武装、把真实流量赶到 Cline 池。探测成功走 markZenSuccess 照常
+// （能清除已武装的故障窗，纯收益）。真实流量计数不变。
+func markZenFailForRequest(params map[string]any) {
+	if isProbeRequest(params) {
+		return
+	}
+	markZenFail()
+}
+
 // zenFailedNow 当前是否处于故障转移窗口内。
 func zenFailedNow() bool {
 	zenStateMu.Lock()
@@ -851,7 +862,7 @@ func callZenAPI(params map[string]any, stream bool) (*http.Response, error) {
 				delay *= 2
 				continue
 			}
-			markZenFail()
+			markZenFailForRequest(params)
 			msg := fmt.Errorf("zen request: %w", err)
 			if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") ||
 				strings.Contains(err.Error(), "connection refused") || strings.Contains(err.Error(), "unreachable") ||
@@ -883,9 +894,10 @@ func callZenAPI(params map[string]any, stream bool) (*http.Response, error) {
 		reason := fmt.Sprintf("zen API %d: %s", resp.StatusCode, truncate(string(bodyBytes), 500))
 
 		// GLM 系模型要求历史 assistant 消息带回 reasoning_content，客户端不回传时
-		// 上游报错（Vercel 层 400，网关可能包成 500）：按错误体匹配、补齐后立即
-		// 重试一次（只做一次，重试仍失败按普通错误报错）
-		if strings.Contains(string(bodyBytes), "reasoning_content") && strings.Contains(string(bodyBytes), "Missing required parameter") && !reasoningInjected {
+		// 上游报错（Vercel 层 400，网关可能包成 500；2026-11 起错误体泛化成
+		// Invalid request，见 isReasoningMissingError）：按错误体匹配、补齐后
+		// 立即重试一次（只做一次，重试仍失败按普通错误报错）
+		if isReasoningMissingError(string(bodyBytes)) && !reasoningInjected {
 			if injectReasoningContent(body) {
 				if nb, err := json.Marshal(body); err == nil {
 					bodyJSON = nb
@@ -909,7 +921,7 @@ func callZenAPI(params map[string]any, stream bool) (*http.Response, error) {
 				delay *= 2
 				continue
 			}
-			markZenFail()
+			markZenFailForRequest(params)
 			return nil, fmt.Errorf("%s", reason)
 		}
 
@@ -941,14 +953,14 @@ func callZenAPI(params map[string]any, stream bool) (*http.Response, error) {
 				delay *= 2
 				continue
 			}
-			markZenFail()
+			markZenFailForRequest(params)
 			if ra > 10*time.Minute {
 				return nil, fmt.Errorf("%s（opencode 免费层出口 IP 限流 ~%s，切换代理节点后可立即重试）", reason, ra.Truncate(time.Minute))
 			}
 			return nil, fmt.Errorf("%s", reason)
 		}
 
-		markZenFail()
+		markZenFailForRequest(params)
 		return nil, fmt.Errorf("%s", reason)
 	}
 }
